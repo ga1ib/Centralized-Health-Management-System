@@ -1,24 +1,23 @@
 from pymongo import MongoClient
+import os
+from dotenv import load_dotenv
 
-# MongoDB Atlas connection string
-client = MongoClient("your_mongodb_connection_uri")
+# Load environment variables from .env file
+load_dotenv()
 
-# Access the database
-db = client["HMS_Database"]
+class DatabaseConnection:
+    _instance = None  # Singleton instance
 
-# Collections
-users_collection = db["Users"]
-appointments_collection = db["Appointments"]
-prescriptions_collection = db["Prescriptions"]
-billing_collection = db["Billing"]
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(DatabaseConnection, cls).__new__(cls)
+            cls._instance.client = MongoClient(os.getenv("MONGO_URI"))  # Connect to MongoDB
+            cls._instance.db = cls._instance.client["HMS_Database"]  # Database Name
+        return cls._instance
 
-# Example: Insert a user
-users_collection.insert_one({
-    "role": "patient",
-    "name": "John Doe",
-    "email": "john@example.com",
-    "password": "hashed_password",
-    "contact": "0123456789",
-    "medical_history": [],
-    "created_at": "2025-03-17"
-})
+    def get_database(self):
+        return self.db  # Return the database object
+
+# Usage example
+db_instance = DatabaseConnection().get_database()
+users_collection = db_instance["Users"]
