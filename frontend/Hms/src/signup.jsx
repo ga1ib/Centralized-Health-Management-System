@@ -4,25 +4,35 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 const Signup = () => {
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const navigate = useNavigate();
+  const [fullName, setFullName]   = useState("");
+  const [email, setEmail]         = useState("");
+  const [password, setPassword]   = useState("");
+  const [role, setRole]           = useState("patient"); // default role
+  const [error, setError]         = useState("");
+  const navigate                = useNavigate();
 
   const handleSignup = async (e) => {
     e.preventDefault();
     setError("");
     try {
+      // Include role in the signup request (if supported by your API)
       const response = await axios.post("http://localhost:5000/api/auth/signup", {
         name: fullName,
         email,
         password,
+        role,
       });
       // Save token after signup
       localStorage.setItem("token", response.data.token);
-      // Redirect to dashboard (Home)
-      navigate("/");
+
+      // Redirect to the appropriate portal based on role
+      if (role === "admin") {
+        navigate("/");
+      } else if (role === "doctor") {
+        navigate("/doctor");
+      } else {
+        navigate("/patient");
+      }
     } catch (err) {
       setError(err.response?.data?.error || "Signup failed. Please try again.");
     }
@@ -72,6 +82,46 @@ const Signup = () => {
               placeholder="Create a password"
               required
             />
+          </div>
+
+          {/* Role Selection */}
+          <div className="mb-4">
+            <label className="block text-gray-700 font-semibold mb-2">Sign up as</label>
+            <div className="flex space-x-4">
+              <label className="inline-flex items-center">
+                <input
+                  type="radio"
+                  className="form-radio"
+                  name="role"
+                  value="patient"
+                  checked={role === "patient"}
+                  onChange={(e) => setRole(e.target.value)}
+                />
+                <span className="ml-2">Patient</span>
+              </label>
+              <label className="inline-flex items-center">
+                <input
+                  type="radio"
+                  className="form-radio"
+                  name="role"
+                  value="doctor"
+                  checked={role === "doctor"}
+                  onChange={(e) => setRole(e.target.value)}
+                />
+                <span className="ml-2">Doctor</span>
+              </label>
+              <label className="inline-flex items-center">
+                <input
+                  type="radio"
+                  className="form-radio"
+                  name="role"
+                  value="admin"
+                  checked={role === "admin"}
+                  onChange={(e) => setRole(e.target.value)}
+                />
+                <span className="ml-2">Admin</span>
+              </label>
+            </div>
           </div>
 
           <button
