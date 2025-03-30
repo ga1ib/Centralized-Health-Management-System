@@ -1,31 +1,35 @@
-// signup.jsx
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 const Signup = () => {
-  const [fullName, setFullName]   = useState("");
-  const [email, setEmail]         = useState("");
-  const [password, setPassword]   = useState("");
-  const [role, setRole]           = useState("patient"); // default role
-  const [error, setError]         = useState("");
-  const navigate                = useNavigate();
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState("patient"); // Default role is patient
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const handleSignup = async (e) => {
     e.preventDefault();
     setError("");
+
+    console.log("Selected Role:", role); // Debugging
+
     try {
-      // Include role in the signup request (if supported by your API)
       const response = await axios.post("http://localhost:5000/api/auth/signup", {
         name: fullName,
         email,
         password,
         role,
       });
-      // Save token after signup
-      localStorage.setItem("token", response.data.token);
 
-      // Redirect to the appropriate portal based on role
+      // Save token and role after signup
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("role", response.data.role);
+
+      console.log("Signup Response:", response.data); // Debugging
+ // Redirect to the appropriate portal based on role
       if (role === "admin") {
         navigate("/");
       } else if (role === "doctor") {
@@ -48,6 +52,8 @@ const Signup = () => {
 
         <form className="mt-6" onSubmit={handleSignup}>
           {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+          
+          {/* Full Name */}
           <div className="mb-4">
             <label className="block text-gray-700 font-semibold">Full Name</label>
             <input
@@ -60,6 +66,7 @@ const Signup = () => {
             />
           </div>
 
+          {/* Email */}
           <div className="mb-4">
             <label className="block text-gray-700 font-semibold">Email</label>
             <input
@@ -72,6 +79,7 @@ const Signup = () => {
             />
           </div>
 
+          {/* Password */}
           <div className="mb-4">
             <label className="block text-gray-700 font-semibold">Password</label>
             <input
@@ -91,39 +99,37 @@ const Signup = () => {
               <label className="inline-flex items-center">
                 <input
                   type="radio"
-                  className="form-radio"
                   name="role"
                   value="patient"
                   checked={role === "patient"}
-                  onChange={(e) => setRole(e.target.value)}
+                  onChange={() => setRole("patient")}
                 />
                 <span className="ml-2">Patient</span>
               </label>
               <label className="inline-flex items-center">
                 <input
                   type="radio"
-                  className="form-radio"
                   name="role"
                   value="doctor"
                   checked={role === "doctor"}
-                  onChange={(e) => setRole(e.target.value)}
+                  onChange={() => setRole("doctor")}
                 />
                 <span className="ml-2">Doctor</span>
               </label>
               <label className="inline-flex items-center">
                 <input
                   type="radio"
-                  className="form-radio"
                   name="role"
                   value="admin"
                   checked={role === "admin"}
-                  onChange={(e) => setRole(e.target.value)}
+                  onChange={() => setRole("admin")}
                 />
                 <span className="ml-2">Admin</span>
               </label>
             </div>
           </div>
 
+          {/* Submit Button */}
           <button
             type="submit"
             className="w-full bg-teal-600 text-white py-2 rounded-md font-semibold hover:bg-teal-700 transition"
