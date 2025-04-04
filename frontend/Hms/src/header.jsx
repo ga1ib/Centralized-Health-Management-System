@@ -41,7 +41,7 @@ const Header = () => {
         </div>
         {/* Navigation Menu */}
         <nav className={`w-full md:block md:w-auto ${isOpen ? "block" : "hidden"}`}>
-          <ul className="flex flex-col md:flex-row md:space-x-6 text-lg items-center">
+          <ul className="flex flex-col md:flex-row md:space-x-6 text-lg items-center text-[#606975]">
             <li className="py-2 md:py-0">
               <Link to="/" className="block hover:text-sky-900 transition">
                 Dashboard
