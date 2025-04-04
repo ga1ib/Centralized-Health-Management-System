@@ -8,3 +8,8 @@
 - Abdur Rahman Galib 2231208642
 - Muhaiminur Rahman Rudro 2212384042
 
+
+## Install this command:
+```
+pip install Flask flask-bcrypt pymongo python-dotenv flask-cors PyJWT flask-jwt-extended && python -m app.app
+```
