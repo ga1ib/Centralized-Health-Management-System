@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 const Login = () => {
   const [email, setEmail]         = useState("");
   const [password, setPassword]   = useState("");
-  const [role, setRole]           = useState("patient"); // default role
+  // const [role, setRole]           = useState("patient"); // default role
   const [error, setError]         = useState("");
   const navigate                = useNavigate();
 
@@ -18,15 +18,17 @@ const Login = () => {
       const response = await axios.post("http://localhost:5000/api/auth/login", {
         email,
         password,
-        role,
+        // role,
       });
       // Save token to localStorage
       localStorage.setItem("token", response.data.token);
+      // console.log();
+      
 
       // Redirect to the appropriate portal based on role
-      if (role === "admin") {
+      if (response.data.user.role === "admin") {
         navigate("/");
-      } else if (role === "doctor") {
+      } else if (response.data.user.role === "doctor") {
         navigate("/doctor");
       } else {
         navigate("/patient");
@@ -71,7 +73,7 @@ const Login = () => {
           </div>
 
           {/* Role Selection */}
-          <div className="mb-4">
+          {/* <div className="mb-4">
             <label className="block text-gray-700 font-semibold mb-2">Login as</label>
             <div className="flex space-x-4">
               <label className="inline-flex items-center">
@@ -108,7 +110,7 @@ const Login = () => {
                 <span className="ml-2">Admin</span>
               </label>
             </div>
-          </div>
+          </div> */}
 
           <button
             type="submit"
