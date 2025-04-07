@@ -8,6 +8,10 @@ import PatientDashboard from "./PatientDashboard";
 import ManageUsers from "./ManageUsers";
 import Appointments from "./Appointments";
 import Reports from "./Reports";
+import PatientAppointment from "./PatientAppointment";
+import BookPatientAppointment from "./BookPatientAppointment";
+import PatientMedicalHistory from "./PatientMedicalHistory";
+import PatientPaymentHistory from "./PatientPaymentHistory";
 
 function App() {
   return (
@@ -52,6 +56,14 @@ function App() {
           }
         />
         <Route 
+          path="/doctor" 
+          element={
+            <PrivateRoute>
+              <DoctorDashboard />
+            </PrivateRoute>
+          }
+        />
+        <Route 
           path="/patient" 
           element={
             <PrivateRoute>
@@ -60,10 +72,34 @@ function App() {
           }
         />
         <Route 
-          path="/doctor" 
+          path="/patient-appointments" 
           element={
             <PrivateRoute>
-              <DoctorDashboard />
+              <PatientAppointment />
+            </PrivateRoute>
+          }
+        />
+        <Route 
+          path="/book-patient-appointment" 
+          element={
+            <PrivateRoute>
+              <BookPatientAppointment />
+            </PrivateRoute>
+          }
+        />
+        <Route 
+          path="/patient-medical-reports" 
+          element={
+            <PrivateRoute>
+              <PatientMedicalHistory />
+            </PrivateRoute>
+          }
+        />
+        <Route 
+          path="/patient-payment-history" 
+          element={
+            <PrivateRoute>
+            <PatientPaymentHistory />
             </PrivateRoute>
           }
         />

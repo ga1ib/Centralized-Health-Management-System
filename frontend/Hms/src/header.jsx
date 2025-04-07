@@ -5,9 +5,12 @@ const Header = () => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
 
+  let role = localStorage.getItem("role");
+
   const handleSignOut = () => {
     // Remove the token from localStorage
     localStorage.removeItem("token");
+    localStorage.removeItem("role");
     // Redirect the user to the login page
     navigate("/login");
   };
@@ -42,34 +45,113 @@ const Header = () => {
         {/* Navigation Menu */}
         <nav className={`w-full md:block md:w-auto ${isOpen ? "block" : "hidden"}`}>
           <ul className="flex flex-col md:flex-row md:space-x-6 text-lg items-center text-[#606975]">
-            <li className="py-2 md:py-0">
-              <Link to="/" className="block hover:text-sky-900 transition">
-                Dashboard
-              </Link>
-            </li>
-            <li className="py-2 md:py-0">
-              <Link to="/appointments" className="block hover:text-sky-900 transition">
-                Appointments
-              </Link>
-            </li>
-            <li className="py-2 md:py-0">
-              <Link to="/patients" className="block hover:text-sky-900 transition">
-                Patients
-              </Link>
-            </li>
-            <li className="py-2 md:py-0">
-              <Link to="/billing" className="block hover:text-sky-900 transition">
-                Billing
-              </Link>
-            </li>
-            <li className="py-2 md:py-0">
-              <button
-                onClick={handleSignOut}
-                className="px-4 py-2 rounded hover:text-sky-900 transition"
-              >
-                Sign Out
-              </button>
-            </li>
+            {/* admin */}
+            {
+              role === "admin" && (
+                <>
+                  <li className="py-2 md:py-0">
+                    <Link to="/" className="block hover:text-sky-900 transition">
+                      Dashboard
+                    </Link>
+                  </li>
+                  <li className="py-2 md:py-0">
+                    <Link to="/appointments" className="block hover:text-sky-900 transition">
+                      Appointments
+                    </Link>
+                  </li>
+                  <li className="py-2 md:py-0">
+                    <Link to="/patients" className="block hover:text-sky-900 transition">
+                      Patients
+                    </Link>
+                  </li>
+                  <li className="py-2 md:py-0">
+                    <Link to="/billing" className="block hover:text-sky-900 transition">
+                      Billing
+                    </Link>
+                  </li>
+                  <li className="py-2 md:py-0">
+                    <button
+                      onClick={handleSignOut}
+                      className="px-4 py-2 rounded hover:text-sky-900 transition"
+                    >
+                      Sign Out
+                    </button>
+                  </li>
+                </>
+              )
+            }
+
+            {/* doctor navbar */}
+            {
+              role === "doctor" && (
+                <>
+                  <li className="py-2 md:py-0">
+                    <Link to="/doctor" className="block hover:text-sky-900 transition">
+                      Dashboard
+                    </Link>
+                  </li>
+                  <li className="py-2 md:py-0">
+                    <Link to="/appointments" className="block hover:text-sky-900 transition">
+                      Appointments
+                    </Link>
+                  </li>
+                  <li className="py-2 md:py-0">
+                    <Link to="/patients" className="block hover:text-sky-900 transition">
+                      Patients
+                    </Link>
+                  </li>
+                  <li className="py-2 md:py-0">
+                    <Link to="/billing" className="block hover:text-sky-900 transition">
+                      Billing
+                    </Link>
+                  </li>
+                  <li className="py-2 md:py-0">
+                    <button
+                      onClick={handleSignOut}
+                      className="px-4 py-2 rounded hover:text-sky-900 transition"
+                    >
+                      Sign Out
+                    </button>
+                  </li>
+                </>
+              )
+            }
+
+            {/* patient navbar */}
+            {
+              role === "patient" && (
+                <>
+                  <li className="py-2 md:py-0">
+                    <Link to="/patient" className="block hover:text-sky-900 transition">
+                      Dashboard
+                    </Link>
+                  </li>
+                  <li className="py-2 md:py-0">
+                    <Link to="/patient-appointments" className="block hover:text-sky-900 transition">
+                      Appointments
+                    </Link>
+                  </li>
+                  <li className="py-2 md:py-0">
+                    <Link to="/patient-medical-reports" className="block hover:text-sky-900 transition">
+                      Medical_History
+                    </Link>
+                  </li>
+                  <li className="py-2 md:py-0">
+                    <Link to="/patient-payment-history" className="block hover:text-sky-900 transition">
+                      Payments
+                    </Link>
+                  </li>
+                  <li className="py-2 md:py-0">
+                    <button
+                      onClick={handleSignOut}
+                      className="px-4 py-2 rounded hover:text-sky-900 transition"
+                    >
+                      Sign Out
+                    </button>
+                  </li>
+                </>
+              )
+            }
           </ul>
         </nav>
       </div>
