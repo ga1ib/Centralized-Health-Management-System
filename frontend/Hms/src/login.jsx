@@ -22,6 +22,7 @@ const Login = () => {
       });
       // Save token to localStorage
       localStorage.setItem("token", response.data.token);
+      localStorage.setItem("role", response.data.user.role);
       // console.log();
       
 

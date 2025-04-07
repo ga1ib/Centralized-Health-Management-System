@@ -3,8 +3,8 @@ import Home from "./home";       // Admin Dashboard
 import Login from "./login";
 import Signup from "./signup";
 import PrivateRoute from "./PrivateRoute";
-import DoctorDashboard from "./doctor";
-import PatientDashboard from "./patient";
+import DoctorDashboard from "./DoctorDashboard";
+import PatientDashboard from "./PatientDashboard";
 import ManageUsers from "./ManageUsers";
 import Appointments from "./Appointments";
 import Reports from "./Reports";
@@ -15,8 +15,6 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/doctor" element={<DoctorDashboard />} />
-        <Route path="/patient" element={<PatientDashboard />} />
         
         {/* Protected route for Admin Dashboard */}
         <Route 
@@ -50,6 +48,22 @@ function App() {
           element={
             <PrivateRoute>
               <Reports />
+            </PrivateRoute>
+          }
+        />
+        <Route 
+          path="/patient" 
+          element={
+            <PrivateRoute>
+              <PatientDashboard />
+            </PrivateRoute>
+          }
+        />
+        <Route 
+          path="/doctor" 
+          element={
+            <PrivateRoute>
+              <DoctorDashboard />
             </PrivateRoute>
           }
         />
