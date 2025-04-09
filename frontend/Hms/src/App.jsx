@@ -12,6 +12,7 @@ import PatientAppointment from "./PatientAppointment";
 import BookPatientAppointment from "./BookPatientAppointment";
 import PatientMedicalHistory from "./PatientMedicalHistory";
 import PatientPaymentHistory from "./PatientPaymentHistory";
+import ViewPatientAppointment from "./ViewPatientAppointment";
 
 function App() {
   return (
@@ -100,6 +101,14 @@ function App() {
           element={
             <PrivateRoute>
             <PatientPaymentHistory />
+            </PrivateRoute>
+          }
+        />
+        <Route 
+          path="/patient-view-appointment" 
+          element={
+            <PrivateRoute>
+            <ViewPatientAppointment />
             </PrivateRoute>
           }
         />
