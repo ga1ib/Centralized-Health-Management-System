@@ -1,122 +1,91 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import Header from './header';
-import Footer from './footer';
+import React, { useState } from "react";
+import Header from "./header";
+import Footer from "./footer";
 
 const BookPatientAppointment = () => {
-  const [doctors, setDoctors] = useState([]);
-  const [form, setForm] = useState({
-    doctorId: '',
-    date: '',
-    time: ''
-  });
-  const [message, setMessage] = useState('');
+    const [doctor, setDoctor] = useState("");
+    const [date, setDate] = useState("");
+    const [time, setTime] = useState("");
+    const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
 
-  useEffect(() => {
-    axios.get('/api/users/doctors')
-      .then(res => {
-        const responseDoctors = Array.isArray(res.data) ? res.data : res.data.doctors || [];
-        setDoctors(responseDoctors);
-      })
-      .catch(err => {
-        console.error('Failed to load doctors:', err);
-        setDoctors([]);
-      });
-  }, []);
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        setError("");
+        setSuccess("");
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+        if (!doctor || !date || !time) {
+            setError("All fields are required.");
+            return;
+        }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const patientId = localStorage.getItem("userId");
-    if (!patientId) {
-      setMessage("Please log in to book an appointment.");
-      return;
-    }
+        // Simulate API call
+        setTimeout(() => {
+            setSuccess("Appointment booked successfully!");
+            alert("Appointment booked successfully!");
+            window.location.href = "/patient"; // Redirect to PatientDashboard
+        }, 1000);
+    };
 
-    try {
-      const res = await axios.post('/api/appointments/book', {
-        patientId,
-        ...form,
-      });
+    return (
+        <div className="flex flex-col min-h-screen bg-[url('../image/bg-02.jpg')] bg-fixed bg-cover bg-center">
+            <Header />
+            <main className="flex-grow container mx-auto py-10 px-6">
+                <h2 className="text-3xl font-bold text-center text-cyan-950 mb-6">
+                    Book a Doctor's Appointment
+                </h2>
+                <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md max-w-md mx-auto">
+                    {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+                    {success && <p className="text-green-500 text-center mb-4">{success}</p>}
 
-      setMessage('Appointment booked successfully!');
-      setForm({ doctorId: '', date: '', time: '' });
-    } catch (err) {
-      console.error(err);
-      setMessage('Failed to book appointment. Please try again.');
-    }
-  };
+                    <div className="mb-4">
+                        <label className="block text-gray-700 font-semibold">Select Doctor</label>
+                        <select
+                            value={doctor}
+                            onChange={(e) => setDoctor(e.target.value)}
+                            className="w-full mt-2 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required
+                        >
+                            <option value="">-- Choose a Doctor --</option>
+                            <option value="Dr. Smith">Dr. Smith</option>
+                            <option value="Dr. Johnson">Dr. Johnson</option>
+                            <option value="Dr. Brown">Dr. Brown</option>
+                        </select>
+                    </div>
 
-  return (
-    <div className="flex flex-col min-h-screen bg-[url('../image/bg-02.jpg')] bg-fixed bg-cover bg-center">
-      <Header />
-      <main className="flex-grow container mx-auto py-10 px-6 rounded shadow-md">
-        <h2 className="text-3xl font-bold text-center text-cyan-950 mb-6">
-          Book Your Appointment
-        </h2>
+                    <div className="mb-4">
+                        <label className="block text-gray-700 font-semibold">Select Date</label>
+                        <input
+                            type="date"
+                            value={date}
+                            onChange={(e) => setDate(e.target.value)}
+                            className="w-full mt-2 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required
+                        />
+                    </div>
 
-        {message && (
-          <p className="text-center text-sm text-red-700 font-semibold mb-4">
-            {message}
-          </p>
-        )}
+                    <div className="mb-4">
+                        <label className="block text-gray-700 font-semibold">Select Time</label>
+                        <input
+                            type="time"
+                            value={time}
+                            onChange={(e) => setTime(e.target.value)}
+                            className="w-full mt-2 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required
+                        />
+                    </div>
 
-        <form onSubmit={handleSubmit} className="max-w-xl mx-auto bg-white p-6 rounded-lg shadow-md">
-          <div className="mb-4">
-            <label htmlFor="doctorId" className="block font-bold mb-2">Select Doctor</label>
-            <select
-              name="doctorId"
-              value={form.doctorId}
-              onChange={handleChange}
-              required
-              className="w-full p-2 border rounded"
-            >
-              <option value="">-- Choose a doctor --</option>
-              {Array.isArray(doctors) && doctors.map(doctor => (
-                <option key={doctor._id} value={doctor._id}>
-                  Dr. {doctor.name} ({doctor.specialization})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="mb-4">
-            <label htmlFor="date" className="block font-bold mb-2">Appointment Date</label>
-            <input
-              type="date"
-              name="date"
-              value={form.date}
-              onChange={handleChange}
-              required
-              className="w-full p-2 border rounded"
-            />
-          </div>
-
-          <div className="mb-4">
-            <label htmlFor="time" className="block font-bold mb-2">Time Slot</label>
-            <input
-              type="time"
-              name="time"
-              value={form.time}
-              onChange={handleChange}
-              required
-              className="w-full p-2 border rounded"
-            />
-          </div>
-
-          <div className="text-center">
-            <button type="submit" className="bg-cyan-800 text-white px-6 py-2 rounded hover:bg-cyan-700">
-              Book Appointment
-            </button>
-          </div>
-        </form>
-      </main>
-      <Footer />
-    </div>
-  );
+                    <button
+                        type="submit"
+                        className="w-full bg-teal-600 text-white py-2 rounded-md font-semibold hover:bg-teal-700 transition"
+                    >
+                        Book Appointment
+                    </button>
+                </form>
+            </main>
+            <Footer />
+        </div>
+    );
 };
 
 export default BookPatientAppointment;
