@@ -23,8 +23,7 @@ const BookPatientAppointment = () => {
                 // Filter doctors from users
                 const doctorsList = response.data.users.filter(user => user.role === "doctor");
                 setDoctors(doctorsList);
-                console.log(response.data.users);
-                
+
             } catch (err) {
                 console.error("Failed to fetch users", err);
             }
