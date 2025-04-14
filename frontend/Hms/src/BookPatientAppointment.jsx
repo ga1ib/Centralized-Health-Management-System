@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import Header from "./header";
 import Footer from "./footer";
 
@@ -8,6 +9,29 @@ const BookPatientAppointment = () => {
     const [time, setTime] = useState("");
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
+    const [users, setUsers] = useState([]);
+    const [doctors, setDoctors] = useState([]);
+
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const token = localStorage.getItem("token");
+                const response = await axios.get("http://localhost:5000/api/users/", {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                setUsers(response.data.users);
+                // Filter doctors from users
+                const doctorsList = response.data.users.filter(user => user.role === "doctor");
+                setDoctors(doctorsList);
+                console.log(response.data.users);
+                
+            } catch (err) {
+                console.error("Failed to fetch users", err);
+            }
+        };
+
+        fetchUsers();
+    }, []);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -47,9 +71,11 @@ const BookPatientAppointment = () => {
                             required
                         >
                             <option value="">-- Choose a Doctor --</option>
-                            <option value="Dr. Smith">Dr. Smith</option>
-                            <option value="Dr. Johnson">Dr. Johnson</option>
-                            <option value="Dr. Brown">Dr. Brown</option>
+                            {doctors.map((doctor, index) => (
+                                <option key={index} value={doctor.email}>
+                                    {doctor.name || doctor.email}
+                                </option>
+                            ))}
                         </select>
                     </div>
 
@@ -82,6 +108,7 @@ const BookPatientAppointment = () => {
                         Book Appointment
                     </button>
                 </form>
+
             </main>
             <Footer />
         </div>
