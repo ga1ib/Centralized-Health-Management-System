@@ -14,6 +14,7 @@ import PatientMedicalHistory from "./PatientMedicalHistory";
 import PatientPaymentHistory from "./PatientPaymentHistory";
 import ViewPatientAppointment from "./ViewPatientAppointment";
 import AddPrescription from "./AddPrescription";
+import DoctorAppointmentList from "./DoctorAppointmentList";
 
 function App() {
   return (
@@ -70,6 +71,14 @@ function App() {
           element={
             <PrivateRoute>
               <AddPrescription />
+            </PrivateRoute>
+          }
+        />
+        <Route 
+          path="/doctor-appointment-dashboard" 
+          element={
+            <PrivateRoute>
+              <DoctorAppointmentList />
             </PrivateRoute>
           }
         />

@@ -91,7 +91,7 @@ const Header = () => {
                     </Link>
                   </li>
                   <li className="py-2 md:py-0">
-                    <Link to="/appointments" className="block hover:text-sky-900 transition">
+                    <Link to="/doctor-appointment-dashboard" className="block hover:text-sky-900 transition">
                       Appointments
                     </Link>
                   </li>
