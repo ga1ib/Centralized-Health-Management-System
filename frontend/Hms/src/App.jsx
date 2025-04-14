@@ -15,6 +15,7 @@ import PatientPaymentHistory from "./PatientPaymentHistory";
 import ViewPatientAppointment from "./ViewPatientAppointment";
 import AddPrescription from "./AddPrescription";
 import DoctorAppointmentList from "./DoctorAppointmentList";
+import BillingHistory from "./BillingHistory";
 
 function App() {
   return (
@@ -39,6 +40,14 @@ function App() {
           element={
             <PrivateRoute>
               <ManageUsers />
+            </PrivateRoute>
+          }
+        />
+        <Route 
+          path="/billing" 
+          element={
+            <PrivateRoute>
+              <BillingHistory />
             </PrivateRoute>
           }
         />

@@ -60,8 +60,8 @@ const Header = () => {
                     </Link>
                   </li>
                   <li className="py-2 md:py-0">
-                    <Link to="/patients" className="block hover:text-sky-900 transition">
-                      Patients
+                    <Link to="/manage-users" className="block hover:text-sky-900 transition">
+                      Users
                     </Link>
                   </li>
                   <li className="py-2 md:py-0">
