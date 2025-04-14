@@ -96,13 +96,8 @@ const Header = () => {
                     </Link>
                   </li>
                   <li className="py-2 md:py-0">
-                    <Link to="/patients" className="block hover:text-sky-900 transition">
-                      Patients
-                    </Link>
-                  </li>
-                  <li className="py-2 md:py-0">
-                    <Link to="/billing" className="block hover:text-sky-900 transition">
-                      Billing
+                    <Link to="/doctor-add-prescription" className="block hover:text-sky-900 transition">
+                      Prescription
                     </Link>
                   </li>
                   <li className="py-2 md:py-0">

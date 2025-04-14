@@ -13,6 +13,7 @@ import BookPatientAppointment from "./BookPatientAppointment";
 import PatientMedicalHistory from "./PatientMedicalHistory";
 import PatientPaymentHistory from "./PatientPaymentHistory";
 import ViewPatientAppointment from "./ViewPatientAppointment";
+import AddPrescription from "./AddPrescription";
 
 function App() {
   return (
@@ -61,6 +62,14 @@ function App() {
           element={
             <PrivateRoute>
               <DoctorDashboard />
+            </PrivateRoute>
+          }
+        />
+        <Route 
+          path="/doctor-add-prescription" 
+          element={
+            <PrivateRoute>
+              <AddPrescription />
             </PrivateRoute>
           }
         />
