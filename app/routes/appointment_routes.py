@@ -1,9 +1,16 @@
 # app/routes/appointment_routes.py
 from flask import Blueprint
-from app.controllers.appointment_controller import appointment_bp
+from app.controllers.appointment_controller import (
+    get_all_appointments,
+    create_appointment,
+    update_appointment_status,
+    delete_appointment
+)
 
 appointment_routes = Blueprint("appointment_routes", __name__)
 
-# You can either register the blueprint directly here or simply use `appointment_bp`
-# In your main app.py, you would register like:
-#    app.register_blueprint(appointment_bp, url_prefix="/api/appointments")
+# Register routes
+appointment_routes.route("/", methods=["GET"])(get_all_appointments)
+appointment_routes.route("/", methods=["POST"])(create_appointment)
+appointment_routes.route("/<appointment_id>", methods=["PUT"])(update_appointment_status)
+appointment_routes.route("/<appointment_id>", methods=["DELETE"])(delete_appointment)
