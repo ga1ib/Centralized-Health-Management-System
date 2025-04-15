@@ -42,11 +42,10 @@ const BookPatientAppointment = () => {
             const response = await axios.get("http://localhost:5000/api/appointments/", {
                 headers: { Authorization: `Bearer ${token}` },
             });
-
-           
+             
+            const filteredAppointments = response.data.appointments.filter(appointment => appointment.patient_email === localStorage.getItem("email"));
+            setAppointments(filteredAppointments);
             
-            // setAppointments(filteredAppointments);
-            setAppointments(response.data.appointments);
         } catch (err) {
             setError(err.response?.data?.error || "Failed to load appointments.");
         } finally {
@@ -121,7 +120,6 @@ const BookPatientAppointment = () => {
                     <table className="min-w-full">
                         <thead>
                             <tr>
-                                <th className="px-6 py-3 text-left">Patient Email</th>
                                 <th className="px-6 py-3 text-left">Doctor Email</th>
                                 <th className="px-6 py-3 text-left">Date</th>
                                 <th className="px-6 py-3 text-left">Time</th>
@@ -132,7 +130,6 @@ const BookPatientAppointment = () => {
                         <tbody>
                             {appointments.map((apt) => (
                                 <tr key={apt._id}>
-                                    <td className="px-6 py-2">{apt.patient_email}</td>
                                     <td className="px-6 py-2">{apt.doctor_email}</td>
                                     <td className="px-6 py-2">{apt.date}</td>
                                     <td className="px-6 py-2">{apt.time}</td>
@@ -172,7 +169,7 @@ const BookPatientAppointment = () => {
                             <option value="">-- Choose a Doctor --</option>
                             {doctors.map((doctor, index) => (
                                 <option key={index} value={doctor.email}>
-                                    {doctor.name || doctor.email}
+                                    {doctor.email}
                                 </option>
                             ))}
                         </select>
