@@ -16,6 +16,11 @@ import ViewPatientAppointment from "./ViewPatientAppointment";
 import AddPrescription from "./AddPrescription";
 import DoctorAppointmentList from "./DoctorAppointmentList";
 import BillingHistory from "./BillingHistory";
+import PrivacyPolicy from "./PrivacyPolicy";
+import TermsAndConditions from "./TermsAndConditions";
+import Support from "./Support";
+
+
 
 function App() {
   return (
@@ -23,6 +28,10 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+        <Route path="/support" element={<Support />} />
+
         
         {/* Protected route for Admin Dashboard */}
         <Route 

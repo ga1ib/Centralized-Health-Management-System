@@ -27,13 +27,12 @@ def get_all_users(decoded_token):
 
 # --------------------------------------------------
 # POST: Register a new user (for adding via ManageUsers)
-# --------------------------------------------------
 @user_bp.route("/register", methods=["POST"])
 def register_user():
     data = request.json
     email = data.get("email")
     password = data.get("password")
-    # Accept role from the request, default to "user" if not provided.
+    name = data.get("name", "")  # NEW: Get name
     role = data.get("role", "user")
 
     if not email or not password:
@@ -43,27 +42,30 @@ def register_user():
         return jsonify({"error": "Email already exists"}), 400
 
     hashed_password = hash_password(password)
-    # Store the role with the user data.
-    users_collection.insert_one({"email": email, "password": hashed_password, "role": role})
+    users_collection.insert_one({
+        "email": email,
+        "password": hashed_password,
+        "name": name,  # NEW: Save name
+        "role": role
+    })
     token = generate_jwt(email)
     return jsonify({"message": "User registered successfully!", "token": token}), 201
 
-# --------------------------------------------------
 # PUT: Update an existing user (by email)
-# --------------------------------------------------
 @user_bp.route("/<email>", methods=["PUT"])
 @token_required
 def update_user(decoded_token, email):
     data = request.json
     update_data = {}
 
-    # Allow updating email, password, and role if provided
     if "email" in data:
         update_data["email"] = data["email"]
     if "password" in data:
         update_data["password"] = hash_password(data["password"])
     if "role" in data:
         update_data["role"] = data["role"]
+    if "name" in data:
+        update_data["name"] = data["name"]  # NEW: Allow name update
 
     if not update_data:
         return jsonify({"error": "No update fields provided"}), 400
@@ -74,7 +76,6 @@ def update_user(decoded_token, email):
 
     return jsonify({"message": "User updated successfully"}), 200
 
-# --------------------------------------------------
 # DELETE: Delete a user by email
 # --------------------------------------------------
 @user_bp.route("/<email>", methods=["DELETE"])

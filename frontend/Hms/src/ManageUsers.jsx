@@ -4,9 +4,10 @@ import Header from "./header";
 import Footer from "./footer";
 
 const ManageUsers = () => {
+  // Updated newUser state to include 'name'
   const [users, setUsers] = useState([]);
-  const [newUser, setNewUser] = useState({ email: "", password: "", role: "" });
-  const [roleFilter, setRoleFilter] = useState(""); // for filtering users by role
+  const [newUser, setNewUser] = useState({ email: "", password: "", role: "", name: "" });
+  const [roleFilter, setRoleFilter] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -34,7 +35,8 @@ const ManageUsers = () => {
     fetchUsers();
   }, []);
 
-  // Handle form input changes for adding a user
+  // Handle form input changes for adding/updating a user.
+  // For role, the change comes from a <select> dropdown.
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewUser((prevState) => ({
@@ -56,20 +58,26 @@ const ManageUsers = () => {
       await axios.post("http://localhost:5000/api/users/register", newUser, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setNewUser({ email: "", password: "", role: "" });
-      fetchUsers(); // Refresh the user list after adding
+      // Reset form state after adding the user
+      setNewUser({ email: "", password: "", role: "", name: "" });
+      fetchUsers(); // Refresh the user list
     } catch (err) {
       setError(err.response?.data?.error || "Failed to add user");
     }
   };
 
-  // PUT: Update an existing user (using the current email as the identifier)
+  // PUT: Update an existing user (now including updating name)
+  // Note: The update still uses window.prompt for simplicity.
   const handleUpdateUser = async (currentEmail) => {
     const newEmail = prompt("Enter new email:", currentEmail);
     if (newEmail === null) return; // Cancelled
+    const newName = prompt("Enter new name (leave blank to keep unchanged):", "");
     const newPassword = prompt("Enter new password (leave blank to keep unchanged):", "");
     const newRole = prompt("Enter new role (leave blank to keep unchanged):", "");
     const updateData = { email: newEmail };
+    if (newName) {
+      updateData.name = newName;
+    }
     if (newPassword) {
       updateData.password = newPassword;
     }
@@ -140,6 +148,7 @@ const ManageUsers = () => {
           <table className="min-w-full bg-white">
             <thead>
               <tr>
+                <th className="px-6 py-3 text-left">Name</th>
                 <th className="px-6 py-3 text-left">Email</th>
                 <th className="px-6 py-3 text-left">Role</th>
                 <th className="px-6 py-3 text-left">Actions</th>
@@ -148,6 +157,7 @@ const ManageUsers = () => {
             <tbody>
               {filteredUsers.map((user, index) => (
                 <tr key={index}>
+                  <td className="px-6 py-3">{user.name || "-"}</td>
                   <td className="px-6 py-3">{user.email}</td>
                   <td className="px-6 py-3">{user.role || "-"}</td>
                   <td className="px-6 py-3">
@@ -174,6 +184,21 @@ const ManageUsers = () => {
         <div className="mt-8">
           <h3 className="text-2xl font-bold mb-4">Add New User</h3>
           <form onSubmit={handleAddUser}>
+            {/* New Name Input */}
+            <div className="mb-4">
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                Name:
+              </label>
+              <input
+                type="text"
+                name="name"
+                id="name"
+                value={newUser.name}
+                onChange={handleInputChange}
+                required
+                className="mt-1 p-2 w-full border border-gray-300 rounded-md"
+              />
+            </div>
             <div className="mb-4">
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 Email:
@@ -202,19 +227,24 @@ const ManageUsers = () => {
                 className="mt-1 p-2 w-full border border-gray-300 rounded-md"
               />
             </div>
+            {/* Updated Role Field with Dropdown */}
             <div className="mb-4">
               <label htmlFor="role" className="block text-sm font-medium text-gray-700">
                 Role:
               </label>
-              <input
-                type="text"
+              <select
                 name="role"
                 id="role"
                 value={newUser.role}
                 onChange={handleInputChange}
-                placeholder="e.g., doctor, patient, staff"
+                required
                 className="mt-1 p-2 w-full border border-gray-300 rounded-md"
-              />
+              >
+                <option value="">Select a role</option>
+                <option value="doctor">Doctor</option>
+                <option value="patient">Patient</option>
+                <option value="Admin">Admin</option>
+              </select>
             </div>
             <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">
               Add User
