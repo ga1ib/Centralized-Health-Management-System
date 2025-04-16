@@ -54,9 +54,13 @@ const instructor = {
 const Support = () => {
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-purple-600 to-indigo-600">
+      {/* Fixed Header */}
+      <div className="fixed top-0 w-full z-50">
         <Header />
+      </div>
+
+      {/* Hero Section */}
+      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 pt-24">
         <div className="container mx-auto py-20 px-4 text-center text-white">
           <h1 className="text-5xl md:text-6xl font-extrabold mb-4">Meet Our Team</h1>
           <p className="text-lg md:text-xl">
@@ -65,9 +69,58 @@ const Support = () => {
         </div>
       </div>
 
-      {/* Contributors Section */}
+      {/* Main Content */}
       <main className="flex-grow container mx-auto px-4 py-12">
+
+        {/* Instructor Section FIRST */}
         <section className="mb-16">
+          <h2 className="text-4xl font-semibold text-gray-800 mb-8 text-center">Instructor</h2>
+          <div className="flex justify-center">
+            <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md text-center hover:shadow-xl transition transform hover:scale-105">
+              <img
+                src={instructor.image}
+                alt={instructor.name}
+                className="w-32 h-32 rounded-full border-4 border-purple-600 mb-6 mx-auto"
+              />
+              <h3 className="text-2xl font-semibold text-gray-800">{instructor.name}</h3>
+              <p className="text-sm text-purple-600 uppercase mb-2">{instructor.role}</p>
+              <p className="text-gray-600 mb-4">{instructor.bio}</p>
+              <div className="flex justify-center gap-4">
+                <a
+                  href={instructor.social.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-indigo-600 hover:text-indigo-800"
+                >
+                  <FaLinkedin size={22} />
+                </a>
+                {instructor.social.github !== "#" && (
+                  <a
+                    href={instructor.social.github}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-800 hover:text-gray-900"
+                  >
+                    <FaGithub size={22} />
+                  </a>
+                )}
+                {instructor.social.twitter !== "#" && (
+                  <a
+                    href={instructor.social.twitter}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-500 hover:text-blue-700"
+                  >
+                    <FaTwitter size={22} />
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Contributors Section SECOND */}
+        <section>
           <h2 className="text-4xl font-semibold text-gray-800 mb-8 text-center">Contributors</h2>
           <div className="grid gap-8 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {contributors.map((person, index) => (
@@ -111,53 +164,6 @@ const Support = () => {
                 </div>
               </div>
             ))}
-          </div>
-        </section>
-
-        {/* Instructor Section */}
-        <section>
-          <h2 className="text-4xl font-semibold text-gray-800 mb-8 text-center">Instructor</h2>
-          <div className="flex justify-center">
-            <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md text-center hover:shadow-xl transition transform hover:scale-105">
-              <img
-                src={instructor.image}
-                alt={instructor.name}
-                className="w-32 h-32 rounded-full border-4 border-purple-600 mb-6 mx-auto"
-              />
-              <h3 className="text-2xl font-semibold text-gray-800">{instructor.name}</h3>
-              <p className="text-sm text-purple-600 uppercase mb-2">{instructor.role}</p>
-              <p className="text-gray-600 mb-4">{instructor.bio}</p>
-              <div className="flex justify-center gap-4">
-                <a
-                  href={instructor.social.linkedin}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-indigo-600 hover:text-indigo-800"
-                >
-                  <FaLinkedin size={22} />
-                </a>
-                {instructor.social.github !== "#" && (
-                  <a
-                    href={instructor.social.github}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-gray-800 hover:text-gray-900"
-                  >
-                    <FaGithub size={22} />
-                  </a>
-                )}
-                {instructor.social.twitter !== "#" && (
-                  <a
-                    href={instructor.social.twitter}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-500 hover:text-blue-700"
-                  >
-                    <FaTwitter size={22} />
-                  </a>
-                )}
-              </div>
-            </div>
           </div>
         </section>
       </main>
