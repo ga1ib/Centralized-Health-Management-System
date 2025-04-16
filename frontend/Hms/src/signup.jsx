@@ -116,7 +116,7 @@ const Signup = () => {
                 />
                 <span className="ml-2">Doctor</span>
               </label>
-              <label className="inline-flex items-center">
+              {/* <label className="inline-flex items-center">
                 <input
                   type="radio"
                   name="role"
@@ -125,7 +125,7 @@ const Signup = () => {
                   onChange={() => setRole("admin")}
                 />
                 <span className="ml-2">Admin</span>
-              </label>
+              </label> */}
             </div>
           </div>
 
