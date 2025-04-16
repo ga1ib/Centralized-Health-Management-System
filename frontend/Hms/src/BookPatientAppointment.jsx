@@ -32,7 +32,7 @@ const BookPatientAppointment = () => {
         fetchUsers();
     }, []);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
         setSuccess("");
@@ -42,12 +42,46 @@ const BookPatientAppointment = () => {
             return;
         }
 
-        // Simulate API call
-        setTimeout(() => {
-            setSuccess("Appointment booked successfully!");
-            alert("Appointment booked successfully!");
-            window.location.href = "/patient"; // Redirect to PatientDashboard
-        }, 1000);
+        try {
+            const patient_email = localStorage.getItem("email");
+            if (!patient_email) {
+                setError("Patient email not found. Please login again.");
+                return;
+            }
+
+            // Find patient details from users array
+            const patient = users.find(user => user.email === patient_email);
+            if (!patient) {
+                setError("Patient details not found.");
+                return;
+            }
+
+            // Find doctor details from users array using selected doctor name
+            const selectedDoctor = doctors.find(doc => doc.name === doctor);
+            if (!selectedDoctor) {
+                setError("Doctor details not found.");
+                return;
+            }
+
+            // console.log({
+            //     patient_email: patient.email,
+            //     patient_name: patient.name,
+            //     doctor_email: selectedDoctor.email,
+            //     doctor_name: selectedDoctor.name,
+            //     appointment_date: date,
+            //     appointment_time: time
+            // });
+
+            // Simulate API call
+            setTimeout(() => {
+                alert("For booking you need to pay 500 taka.Press 'OK' to complete the process.");
+                alert("Appointment booked successfully!");
+                setSuccess("Appointment booked successfully!");
+                window.location.href = "/patient"; // Redirect to PatientDashboard
+            }, 1000);
+        } catch (err) {
+            setError("Error processing appointment: " + err.message);
+        }
     };
 
     return (
@@ -72,8 +106,8 @@ const BookPatientAppointment = () => {
                         >
                             <option value="">-- Choose a Doctor --</option>
                             {doctors.map((doctor, index) => (
-                                <option key={index} value={doctor.email}>
-                                    {doctor.email}
+                                <option key={index} value={doctor.name}>
+                                    {doctor.name}
                                 </option>
                             ))}
                         </select>
