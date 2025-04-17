@@ -73,6 +73,7 @@ const BookPatientAppointment = () => {
                 appointment_date: date,
                 appointment_time: time
             };
+            
 
             // Store appointment data in localStorage for the payment page
             localStorage.setItem('appointmentData', JSON.stringify(appointmentData));

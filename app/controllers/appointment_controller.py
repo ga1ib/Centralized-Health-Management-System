@@ -39,7 +39,7 @@ def get_all_appointments(decoded_token):
 @token_required
 def create_appointment(decoded_token):
     data = request.json
-    required_fields = ["patient_email", "doctor_email", "date", "time", "status"]
+    required_fields = ["patient_email", "patient_name", "doctor_email", "doctor_name", "date", "time", "status"]
     if not all(field in data for field in required_fields):
         return jsonify({"error": "Missing required appointment fields"}), 400
 
