@@ -37,8 +37,30 @@ const PatientPayment = () => {
             }
             
             const parsedAppointmentData = JSON.parse(storedAppointmentData);
+            const token = localStorage.getItem('token');
+
+            // Process payment first through the payment strategy
+            const paymentData = {
+                patient_email: parsedAppointmentData.patient_email,
+                patient_name: parsedAppointmentData.patient_name,
+                doctor_email: parsedAppointmentData.doctor_email,
+                doctor_name: parsedAppointmentData.doctor_name,
+                amount: paymentDetails.amount,
+                card_number: paymentDetails.cardNumber,
+                card_holder: paymentDetails.cardHolder,
+                expiry_date: paymentDetails.expiryDate,
+                schedule_date: parsedAppointmentData.appointment_date,
+                schedule_time: parsedAppointmentData.appointment_time
+            };
+
+            // Process payment
+            const paymentResponse = await axios.post(
+                'http://localhost:5000/api/billing/',
+                paymentData,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
             
-            // Create appointment data object
+            // If payment successful, create appointment
             const appointmentData = {
                 patient_email: parsedAppointmentData.patient_email,
                 patient_name: parsedAppointmentData.patient_name,
@@ -46,14 +68,10 @@ const PatientPayment = () => {
                 doctor_name: parsedAppointmentData.doctor_name,
                 date: parsedAppointmentData.appointment_date,
                 time: parsedAppointmentData.appointment_time,
-                status: "Scheduled"
+                status: "Scheduled",
+                payment_id: paymentResponse.data.transaction_id
             };
 
-            // Process payment first (simulated with timeout)
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            
-            // After successful payment, create appointment in database
-            const token = localStorage.getItem('token');
             await axios.post('http://localhost:5000/api/appointments/', appointmentData, {
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -62,7 +80,7 @@ const PatientPayment = () => {
             alert('Appointment booked and payment processed successfully!');
             navigate('/patient-payment-history');
         } catch (err) {
-            setError(err.response?.data?.message || 'Payment and appointment booking failed. Please try again.');
+            setError(err.response?.data?.error || 'Payment and appointment booking failed. Please try again.');
         } finally {
             setLoading(false);
         }
