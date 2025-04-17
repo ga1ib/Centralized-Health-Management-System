@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import Header from './header';
 import Footer from './footer';
 
 const PatientPayment = () => {
     const navigate = useNavigate();
+    const [appointmentData, setAppointmentData] = useState(null);
     const [paymentDetails, setPaymentDetails] = useState({
         cardNumber: '',
         cardHolder: '',
@@ -14,6 +16,15 @@ const PatientPayment = () => {
     });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        const storedAppointmentData = localStorage.getItem('appointmentData');
+        if (!storedAppointmentData) {
+            navigate('/book-patient-appointment');
+            return;
+        }
+        setAppointmentData(JSON.parse(storedAppointmentData));
+    }, [navigate]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -29,14 +40,14 @@ const PatientPayment = () => {
         setLoading(true);
 
         try {
-            // Simulate payment processing
             await new Promise(resolve => setTimeout(resolve, 1500));
-            
-            // On successful payment
-            alert('Payment processed successfully!');
+
+            localStorage.removeItem('appointmentData');
+            alert('Appointment booked and payment processed successfully!');
             navigate('/patient-payment-history');
+
         } catch (err) {
-            setError('Payment failed. Please try again.');
+            setError(err.response?.data?.message || 'Payment and appointment booking failed. Please try again.');
         } finally {
             setLoading(false);
         }

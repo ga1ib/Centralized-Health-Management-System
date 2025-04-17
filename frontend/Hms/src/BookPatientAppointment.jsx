@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import Header from "./header";
 import Footer from "./footer";
 
@@ -11,6 +12,7 @@ const BookPatientAppointment = () => {
     const [success, setSuccess] = useState("");
     const [users, setUsers] = useState([]);
     const [error, setError] = useState("");
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -63,22 +65,20 @@ const BookPatientAppointment = () => {
                 return;
             }
 
-            // console.log({
-            //     patient_email: patient.email,
-            //     patient_name: patient.name,
-            //     doctor_email: selectedDoctor.email,
-            //     doctor_name: selectedDoctor.name,
-            //     appointment_date: date,
-            //     appointment_time: time
-            // });
+            const appointmentData = {
+                patient_email: patient.email,
+                patient_name: patient.name,
+                doctor_email: selectedDoctor.email,
+                doctor_name: selectedDoctor.name,
+                appointment_date: date,
+                appointment_time: time
+            };
 
-            // Simulate API call
-            setTimeout(() => {
-                alert("For booking you need to pay 500 taka.Press 'OK' to complete the process.");
-                alert("Appointment booked successfully!");
-                setSuccess("Appointment booked successfully!");
-                window.location.href = "/patient"; // Redirect to PatientDashboard
-            }, 1000);
+            // Store appointment data in localStorage for the payment page
+            localStorage.setItem('appointmentData', JSON.stringify(appointmentData));
+            
+            // Navigate to payment page
+            navigate('/patient-payment-processing');
         } catch (err) {
             setError("Error processing appointment: " + err.message);
         }
