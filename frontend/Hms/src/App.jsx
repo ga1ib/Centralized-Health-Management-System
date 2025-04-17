@@ -19,6 +19,7 @@ import BillingHistory from "./BillingHistory";
 import PrivacyPolicy from "./PrivacyPolicy";
 import TermsAndConditions from "./TermsAndConditions";
 import Support from "./Support";
+import PatientPayment from "./PatientPayment";
 
 
 
@@ -32,10 +33,10 @@ function App() {
         <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
         <Route path="/support" element={<Support />} />
 
-        
+
         {/* Protected route for Admin Dashboard */}
-        <Route 
-          path="/" 
+        <Route
+          path="/"
           element={
             <PrivateRoute>
               <Home />
@@ -44,107 +45,115 @@ function App() {
         />
 
         {/* Admin Functionality Routes */}
-        <Route 
-          path="/manage-users" 
+        <Route
+          path="/manage-users"
           element={
             <PrivateRoute>
               <ManageUsers />
             </PrivateRoute>
           }
         />
-        <Route 
-          path="/billing" 
+        <Route
+          path="/billing"
           element={
             <PrivateRoute>
               <BillingHistory />
             </PrivateRoute>
           }
         />
-        <Route 
-          path="/appointments" 
+        <Route
+          path="/appointments"
           element={
             <PrivateRoute>
               <Appointments />
             </PrivateRoute>
           }
         />
-        <Route 
-          path="/reports" 
+        <Route
+          path="/reports"
           element={
             <PrivateRoute>
               <Reports />
             </PrivateRoute>
           }
         />
-        <Route 
-          path="/doctor" 
+        <Route
+          path="/doctor"
           element={
             <PrivateRoute>
               <DoctorDashboard />
             </PrivateRoute>
           }
         />
-        <Route 
-          path="/doctor-add-prescription" 
+        <Route
+          path="/doctor-add-prescription"
           element={
             <PrivateRoute>
               <AddPrescription />
             </PrivateRoute>
           }
         />
-        <Route 
-          path="/doctor-appointment-dashboard" 
+        <Route
+          path="/doctor-appointment-dashboard"
           element={
             <PrivateRoute>
               <DoctorAppointmentList />
             </PrivateRoute>
           }
         />
-        <Route 
-          path="/patient" 
+        <Route
+          path="/patient"
           element={
             <PrivateRoute>
               <PatientDashboard />
             </PrivateRoute>
           }
         />
-        <Route 
-          path="/patient-appointments" 
+        <Route
+          path="/patient-appointments"
           element={
             <PrivateRoute>
               <PatientAppointment />
             </PrivateRoute>
           }
         />
-        <Route 
-          path="/book-patient-appointment" 
+        <Route
+          path="/book-patient-appointment"
           element={
             <PrivateRoute>
               <BookPatientAppointment />
             </PrivateRoute>
           }
         />
-        <Route 
-          path="/patient-medical-reports" 
+        <Route
+          path="/patient-medical-reports"
           element={
             <PrivateRoute>
               <PatientMedicalHistory />
             </PrivateRoute>
           }
         />
-        <Route 
-          path="/patient-payment-history" 
+        <Route
+          path="/patient-payment-history"
           element={
             <PrivateRoute>
-            <PatientPaymentHistory />
+              <PatientPaymentHistory />
             </PrivateRoute>
           }
         />
-        <Route 
-          path="/patient-view-appointment" 
+        <Route
+          path="/patient-view-appointment"
           element={
             <PrivateRoute>
-            <ViewPatientAppointment />
+              <ViewPatientAppointment />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/patient-payment-processing"
+          element={
+            <PrivateRoute>
+              <PatientPayment />
             </PrivateRoute>
           }
         />
