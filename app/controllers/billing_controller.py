@@ -1,3 +1,5 @@
+# app/controllers/billing_controller.py
+
 from flask import Blueprint, jsonify, request
 from app.services.db_connection import DatabaseConnection
 from app.middleware.auth_middleware import token_required
@@ -7,6 +9,24 @@ from app.services.payment_service import CardPaymentStrategy, PaymentProcessor
 billing_bp = Blueprint("billing", __name__)
 db_instance = DatabaseConnection().get_database()
 billing_collection = db_instance["Billing"]
+
+# --------------------------------------------------
+# GET: Retrieve all billing records (admin)
+# --------------------------------------------------
+@billing_bp.route("/", methods=["GET"])
+@token_required
+def get_all_billings(decoded_token):
+    try:
+        # Retrieve every billing document, exclude _id
+        payments = list(billing_collection.find({}, {"_id": 0}))
+        return jsonify({"payments": payments}), 200
+    except Exception as e:
+        return jsonify({"error": f"Failed to fetch billing data: {str(e)}"}), 500
+
+# --------------------------------------------------
+# POST: process_payment (unchanged)
+# --------------------------------------------------
+
 
 @billing_bp.route("/", methods=["POST"])
 @token_required
