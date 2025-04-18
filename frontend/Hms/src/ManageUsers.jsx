@@ -88,7 +88,7 @@ const ManageUsers = () => {
       <Header />
       <main className="flex-grow container mx-auto py-16 px-6">
         <motion.h2
-          className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-pink-500 text-center mb-8"
+          className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-blue-500 text-center mb-8"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
@@ -110,12 +110,12 @@ const ManageUsers = () => {
                   value={roleFilter}
                   onChange={handleRoleFilterChange}
                   placeholder="Filter by role..."
-                  className="bg-transparent placeholder-white text-white focus:outline-none"
+                  className="bg-transparent placeholder-white text-black focus:outline-none"
                 />
               </div>
               <button
                 onClick={() => document.getElementById('addUserForm').scrollIntoView({ behavior: 'smooth' })}
-                className="flex items-center bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-2 rounded-full shadow-lg hover:scale-105 transform transition"
+                className="flex items-center bg-gradient-to-r from-teal-500 to-purple-400 text-white px-4 py-2 rounded-full shadow-lg hover:scale-105 transform transition"
               >
                 <FaUserPlus className="mr-2" /> Add New User
               </button>
@@ -134,9 +134,9 @@ const ManageUsers = () => {
                 <tbody>
                   {filteredUsers.map(u => (
                     <motion.tr key={u.email} className="border-b hover:bg-white/40" whileHover={{ scale: 1.02 }}>
-                      <td className="px-6 py-3 text-white">{u.name || '-'}</td>
-                      <td className="px-6 py-3 text-white">{u.email}</td>
-                      <td className="px-6 py-3 text-white">{u.role || '-'}</td>
+                      <td className="px-6 py-3 text-black">{u.name || '-'}</td>
+                      <td className="px-6 py-3 text-black">{u.email}</td>
+                      <td className="px-6 py-3 text-black">{u.role || '-'}</td>
                       <td className="px-6 py-3 flex gap-2">
                         <button onClick={() => handleUpdateUser(u.email)} className="p-2 bg-yellow-400 rounded-full shadow hover:bg-yellow-500 transition">
                           <FaEdit />

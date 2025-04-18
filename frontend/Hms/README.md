@@ -14,5 +14,6 @@ If you are developing a production application, we recommend using TypeScript an
 
 ## Install these Packages using this command
 ```
-npm install react-router-dom localforage match-sorter sort-by react-icons
+npm install react-router-dom localforage match-sorter sort-by react-icons framer-motion
+
 ```

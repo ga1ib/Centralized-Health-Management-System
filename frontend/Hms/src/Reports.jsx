@@ -35,9 +35,9 @@ const HospitalReports = () => {
   return (
     <div className="flex flex-col min-h-screen bg-[url('../image/bg-01.jpg')] bg-fixed bg-cover bg-center">
       <Header />
-      <main className="flex-grow container mx-auto py-16 px-6 text-white">
+      <main className="flex-grow container mx-auto py-16 px-6 text-black">
         <motion.h2
-          className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-yellow-500 text-center mb-10"
+          className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-teal-500 to-green-500 text-center mb-10"
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8 }}
@@ -57,7 +57,7 @@ const HospitalReports = () => {
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="flex-1">
                   <label htmlFor="start" className="block text-sm font-medium text-gray-700 mb-1">
-                    <FaCalendarAlt className="inline mr-1 text-indigo-600" /> Start Date
+                    <FaCalendarAlt className="inline mr-1 text-teal-600" /> Start Date
                   </label>
                   <input
                     type="date"
@@ -70,7 +70,7 @@ const HospitalReports = () => {
                 </div>
                 <div className="flex-1">
                   <label htmlFor="end" className="block text-sm font-medium text-gray-700 mb-1">
-                    <FaCalendarAlt className="inline mr-1 text-indigo-600" /> End Date
+                    <FaCalendarAlt className="inline mr-1 text-teal-600" /> End Date
                   </label>
                   <input
                     type="date"
@@ -83,7 +83,7 @@ const HospitalReports = () => {
                 </div>
                 <button
                   type="submit"
-                  className="self-end bg-gradient-to-r from-pink-500 to-yellow-500 text-white px-6 py-3 rounded-full shadow-lg hover:scale-105 transition"
+                  className="self-end bg-gradient-to-r from-teal-500 to-green-500 text-white px-6 py-3 rounded-full shadow-lg hover:scale-105 transition"
                 >
                   <FaFileAlt className="inline mr-2" /> Generate
                 </button>
