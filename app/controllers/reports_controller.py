@@ -1,64 +1,156 @@
-# app/controllers/reports_controller.py
 from flask import Blueprint, jsonify, request
 from app.services.db_connection import DatabaseConnection
 from app.middleware.auth_middleware import token_required
 from datetime import datetime
+from abc import ABC, abstractmethod
+from werkzeug.utils import secure_filename
+import os
 
-reports_bp = Blueprint("reports", __name__)
-db_instance = DatabaseConnection().get_database()
-billing_collection = db_instance["Billing"]  # Example: using your Billing schema
-reports_collection = db_instance["Reports"]  # Define the Reports collection
+# Report Adapter Interface
+class ReportAdapter(ABC):
+    @abstractmethod
+    def get_data(self, query_params=None):
+        pass
+
+    @abstractmethod
+    def format_response(self, data):
+        pass
+
+# Concrete Adapter for All Reports
+class AllReportsAdapter(ReportAdapter):
+    def __init__(self, collection):
+        self.collection = collection
+
+    def get_data(self, query_params=None):
+        return list(self.collection.find({}, {"_id": 0}))
+
+    def format_response(self, data):
+        # Convert datetime objects to ISO format strings
+        for d in data:
+            for k, v in d.items():
+                if isinstance(v, datetime):
+                    d[k] = v.isoformat()
+        return {"reports": data}
+
+# Concrete Adapter for Hospital Reports
+class HospitalReportsAdapter(ReportAdapter):
+    def __init__(self, collection):
+        self.collection = collection
+
+    def get_data(self, query_params=None):
+        query = {}
+        if query_params and 'start' in query_params and 'end' in query_params:
+            try:
+                start = datetime.strptime(query_params['start'], "%Y-%m-%d")
+                end   = datetime.strptime(query_params['end'],   "%Y-%m-%d")
+                query["date"] = {"$gte": start, "$lte": end}
+            except Exception:
+                return None
+
+        pipeline = [
+            {"$match": query},
+            {"$group": {"_id": None, "totalEarnings": {"$sum": "$amount"}}}
+        ]
+        return list(self.collection.aggregate(pipeline))
+
+    def format_response(self, data):
+        totalEarnings = data[0]["totalEarnings"] if data else 0
+        report_data = [
+            {"metric": "Total Earnings", "value": totalEarnings}
+        ]
+        return {"reports": report_data}
+
+reports_bp         = Blueprint("reports", __name__)
+db_instance       = DatabaseConnection().get_database()
+billing_collection= db_instance["Billing"]
+reports_collection= db_instance["Reports"]
+
+# instantiate adapters
+all_reports_adapter      = AllReportsAdapter(reports_collection)
+hospital_reports_adapter = HospitalReportsAdapter(billing_collection)
+
+# Upload config
+UPLOAD_FOLDER    = 'uploads/reports'
+ALLOWED_EXTENSIONS = {'pdf', 'jpg', 'jpeg', 'png'}
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @reports_bp.route("/all", methods=["GET"])
 @token_required
 def get_all_reports(decoded_token):
-    """
-    Returns every document in the Reports collection.
-    """
     try:
-        docs = list(reports_collection.find({}, {"_id": 0}))
-
-        # Ensure any datetime fields serialize to ISO strings
-        for d in docs:
-            for k, v in d.items():
-                if isinstance(v, datetime):
-                    d[k] = v.isoformat()
-
-        return jsonify({"reports": docs}), 200
-
+        data     = all_reports_adapter.get_data()
+        response = all_reports_adapter.format_response(data)
+        return jsonify(response), 200
     except Exception as e:
         return jsonify({
-            "error": "Failed to fetch reports.",
+            "error":   "Failed to fetch reports.",
             "details": str(e)
         }), 500
 
 @reports_bp.route("/hospital", methods=["GET"])
 @token_required
 def get_hospital_reports(decoded_token):
-    # Optional date filtering from query parameters
-    start_date = request.args.get("start")
-    end_date = request.args.get("end")
-    query = {}
-    if start_date and end_date:
-        # Assuming your billing documents have a 'date' field (stored as a string or datetime)
-        try:
-            start = datetime.strptime(start_date, "%Y-%m-%d")
-            end = datetime.strptime(end_date, "%Y-%m-%d")
-            query["date"] = {"$gte": start, "$lte": end}
-        except Exception as e:
-            return jsonify({"error": "Invalid date format. Use YYYY-MM-DD.", "details": str(e)}), 400
+    query_params = request.args.to_dict()
+    try:
+        data = hospital_reports_adapter.get_data(query_params)
+        if data is None:
+            return jsonify({"error": "Invalid date format. Use YYYY-MM-DD."}), 400
+        response = hospital_reports_adapter.format_response(data)
+        return jsonify(response), 200
+    except Exception as e:
+        return jsonify({
+            "error":   "Failed to fetch hospital reports.",
+            "details": str(e)
+        }), 500
 
-    # Example aggregation to calculate total earnings
-    pipeline = [
-        {"$match": query},
-        {"$group": {"_id": None, "totalEarnings": {"$sum": "$amount"}}}
-    ]
-    result = list(billing_collection.aggregate(pipeline))
-    totalEarnings = result[0]["totalEarnings"] if result else 0
+@reports_bp.route("/upload", methods=["POST"])
+@token_required
+def upload_report(decoded_token):
+    try:
+        # file presence
+        if 'file' not in request.files:
+            return jsonify({"error": "No file part"}), 400
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({"error": "No selected file"}), 400
+        if not allowed_file(file.filename):
+            return jsonify({"error": "File type not allowed"}), 400
 
-    # You can also add other performance metrics as needed.
-    report_data = [
-        {"metric": "Total Earnings", "value": totalEarnings},
-        # Add further metrics here...
-    ]
-    return jsonify({"reports": report_data}), 200
+        # save file
+        filename  = secure_filename(file.filename)
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(file_path)
+
+        # parse date & time fields
+        date_str = request.form.get("report_date")
+        time_str = request.form.get("report_time")
+        upload_dt = datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M")
+
+        # build metadata
+        report_data = {
+            "filename":     filename,
+            "file_path":    file_path,
+            "upload_date":  upload_dt,
+            "uploaded_by":  decoded_token["email"],
+            "patient_name": request.form.get("patient_name", ""),
+            "service":      request.form.get("service", ""),
+            "amount":       float(request.form.get("amount", 0)),
+            "status":       "Unpaid"
+        }
+
+        # insert into DB
+        reports_collection.insert_one(report_data)
+
+        return jsonify({
+            "message":  "Report uploaded successfully",
+            "filename": filename
+        }), 201
+
+    except Exception as e:
+        return jsonify({
+            "error":   "Failed to upload report",
+            "details": str(e)
+        }), 500

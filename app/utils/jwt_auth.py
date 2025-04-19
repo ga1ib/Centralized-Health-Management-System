@@ -4,13 +4,16 @@ import os
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 
-def generate_jwt(email):
+def generate_jwt(user_info):
+    """
+    Generate JWT token with user information
+    user_info should contain email, role, and name
+    """
     payload = {
-        "email": email,
+        **user_info,
         "exp": datetime.datetime.utcnow() + datetime.timedelta(days=1)
     }
     token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
-    # Ensure token is a string (PyJWT 1.x returns bytes)
     if isinstance(token, bytes):
         token = token.decode("utf-8")
     return token

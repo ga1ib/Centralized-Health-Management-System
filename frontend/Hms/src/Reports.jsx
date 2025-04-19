@@ -1,25 +1,40 @@
-//reports.jsx
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { FaSpinner, FaFilter, FaEdit, FaTrash } from "react-icons/fa";
+import {
+  FaSpinner,
+  FaFilter,
+  FaEdit,
+  FaTrash,
+  FaUpload
+} from "react-icons/fa";
 import { motion } from "framer-motion";
 import Header from "./header";
 import Footer from "./footer";
 
 const Reports = () => {
-  const [reports, setReports] = useState([]);
+  const [reports, setReports]           = useState([]);
   const [statusFilter, setStatusFilter] = useState("");
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [error, setError]               = useState(null);
+  const [loading, setLoading]           = useState(true);
+  const [uploadForm, setUploadForm]     = useState({
+    file:          null,
+    patient_name:  "",
+    service:       "",
+    amount:        "",
+    report_date:   "",   // ← new
+    report_time:   ""    // ← new
+  });
+  const [showUploadForm, setShowUploadForm] = useState(false);
 
   const fetchReports = async () => {
     try {
       const token = localStorage.getItem("token");
-      if (!token) throw new Error("Authentication token is missing. Please log in.");
-      const { data } = await axios.get("http://localhost:5000/api/reports/all", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setReports(data.reports);
+      if (!token) throw new Error("Authentication token is missing.");
+      const { data } = await axios.get(
+        "http://localhost:5000/api/reports/all",
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setReports(data.reports || []);
     } catch (err) {
       setError(err.response?.data?.error || err.message);
     } finally {
@@ -27,20 +42,16 @@ const Reports = () => {
     }
   };
 
-  useEffect(() => {
-    fetchReports();
-  }, []);
+  useEffect(() => { fetchReports(); }, []);
 
-  const handleStatusFilterChange = e => {
-    setStatusFilter(e.target.value);
-  };
+  const handleStatusFilterChange = e => setStatusFilter(e.target.value);
 
   const handleUpdateStatus = async (id, currentStatus) => {
     const newStatus = prompt(
       `Current status is "${currentStatus}". Enter new status ("Paid" or "Unpaid"):`,
       currentStatus
     );
-    if (!newStatus || !["Paid", "Unpaid"].includes(newStatus)) return;
+    if (!newStatus || !["Paid","Unpaid"].includes(newStatus)) return;
     try {
       const token = localStorage.getItem("token");
       await axios.put(
@@ -49,21 +60,67 @@ const Reports = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       fetchReports();
-    } catch (err) {
-      setError(err.response?.data?.error || "Failed to update status");
+    } catch {
+      setError("Failed to update status");
     }
   };
 
   const handleDeleteReport = async id => {
-    if (!window.confirm("Are you sure you want to delete this report?")) return;
+    if (!window.confirm("Delete this report?")) return;
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:5000/api/reports/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axios.delete(
+        `http://localhost:5000/api/reports/${id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       fetchReports();
-    } catch (err) {
-      setError(err.response?.data?.error || "Failed to delete report");
+    } catch {
+      setError("Failed to delete report");
+    }
+  };
+
+  const handleFileChange = e =>
+    setUploadForm(prev => ({ ...prev, file: e.target.files[0] }));
+
+  const handleUploadInputChange = e => {
+    const { name, value } = e.target;
+    setUploadForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleUpload = async e => {
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append("file", uploadForm.file);
+    formData.append("patient_name", uploadForm.patient_name);
+    formData.append("service", uploadForm.service);
+    formData.append("amount", uploadForm.amount);
+    formData.append("report_date", uploadForm.report_date);  // ← new
+    formData.append("report_time", uploadForm.report_time);  // ← new
+
+    try {
+      const token = localStorage.getItem("token");
+      await axios.post(
+        "http://localhost:5000/api/reports/upload",
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data"
+          }
+        }
+      );
+      setUploadForm({
+        file:         null,
+        patient_name: "",
+        service:      "",
+        amount:       "",
+        report_date:  "",
+        report_time:  ""
+      });
+      setShowUploadForm(false);
+      fetchReports();
+    } catch {
+      setError("Failed to upload report");
     }
   };
 
@@ -76,7 +133,7 @@ const Reports = () => {
       <Header />
       <main className="flex-grow container mx-auto py-16 px-6">
         <motion.h2
-          className="text-5xl leading-normal font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-blue-500 text-center mb-8"
+          className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-blue-500 text-center mb-8"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
@@ -105,13 +162,116 @@ const Reports = () => {
                   <option value="Unpaid">Unpaid</option>
                 </select>
               </div>
+
+              <button
+                onClick={() => setShowUploadForm(!showUploadForm)}
+                className="flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-full hover:bg-green-600 transition"
+              >
+                <FaUpload /> Upload Report
+              </button>
             </div>
+
+            {showUploadForm && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-8 bg-white/90 backdrop-blur-lg rounded-xl p-6 shadow-xl"
+              >
+                <h3 className="text-xl font-semibold text-gray-800 mb-4">
+                  Upload New Report
+                </h3>
+                <form
+                  onSubmit={handleUpload}
+                  className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                >
+                  <div>
+                    <label className="block text-gray-700 mb-2">Patient Name</label>
+                    <input
+                      type="text"
+                      name="patient_name"
+                      value={uploadForm.patient_name}
+                      onChange={handleUploadInputChange}
+                      required
+                      className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 mb-2">Service</label>
+                    <input
+                      type="text"
+                      name="service"
+                      value={uploadForm.service}
+                      onChange={handleUploadInputChange}
+                      required
+                      className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 mb-2">Amount</label>
+                    <input
+                      type="number"
+                      name="amount"
+                      value={uploadForm.amount}
+                      onChange={handleUploadInputChange}
+                      required
+                      className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 mb-2">Date</label>
+                    <input
+                      type="date"
+                      name="report_date"
+                      value={uploadForm.report_date}
+                      onChange={handleUploadInputChange}
+                      required
+                      className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 mb-2">Time</label>
+                    <input
+                      type="time"
+                      name="report_time"
+                      value={uploadForm.report_time}
+                      onChange={handleUploadInputChange}
+                      required
+                      className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 mb-2">Report File</label>
+                    <input
+                      type="file"
+                      onChange={handleFileChange}
+                      required
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
+                    />
+                  </div>
+                  <div className="md:col-span-2 flex justify-end gap-4">
+                    <button
+                      type="button"
+                      onClick={() => setShowUploadForm(false)}
+                      className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
+                    >
+                      Upload
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            )}
 
             <div className="overflow-x-auto bg-white/50 backdrop-blur-lg rounded-lg shadow-lg">
               <table className="min-w-full">
                 <thead className="bg-white/70">
                   <tr>
-                    {/* <th className="px-6 py-3 text-left text-indigo-800">Patient ID</th> */}
                     <th className="px-6 py-3 text-left text-indigo-800">Name</th>
                     <th className="px-6 py-3 text-left text-indigo-800">Date</th>
                     <th className="px-6 py-3 text-left text-indigo-800">Amount</th>
@@ -123,18 +283,29 @@ const Reports = () => {
                 <tbody>
                   {filteredReports.map(r => (
                     <motion.tr
-                      key={r._id || `${r.patient_id}-${r.date}`}
+                      key={r._id || `${r.patient_name}-${r.upload_date}`}
                       className="border-b hover:bg-white/40"
                       whileHover={{ scale: 1.02 }}
                     >
-                      {/* <td className="px-6 py-3 text-black">{r.patient_id}</td> */}
                       <td className="px-6 py-3 text-black">{r.patient_name}</td>
                       <td className="px-6 py-3 text-black">
-                        {new Date(r.date).toLocaleDateString()}
+                        {new Date(r.upload_date).toLocaleString()}
                       </td>
-                      <td className="px-6 py-3 text-black font-semibold">{r.amount}</td>
+                      <td className="px-6 py-3 text-black font-semibold">
+                        ${r.amount}
+                      </td>
                       <td className="px-6 py-3 text-black">{r.service}</td>
-                      <td className="px-6 py-3 text-black">{r.status}</td>
+                      <td className="px-6 py-3">
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs font-semibold capitalize ${
+                            r.status.toLowerCase() === "paid"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
+                          }`}
+                        >
+                          {r.status}
+                        </span>
+                      </td>
                       <td className="px-6 py-3 flex gap-2">
                         <button
                           onClick={() => handleUpdateStatus(r._id, r.status)}
