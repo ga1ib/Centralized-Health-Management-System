@@ -2,10 +2,12 @@ from flask import Blueprint, request, jsonify
 from app.services.db_connection import DatabaseConnection
 from app.middleware.auth_middleware import token_required
 from app.models.prescription_model import PrescriptionModel
+from app.services.hms_facade import HMSFacade
 
 prescription_bp = Blueprint("prescription", __name__)
 db_instance = DatabaseConnection().get_database()
 prescription_collection = db_instance["Prescriptions"]
+facade = HMSFacade()
 
 @prescription_bp.route("/", methods=["POST"])
 @token_required
@@ -52,4 +54,23 @@ def get_prescriptions(decoded_token):
     if doctor_email:
         query["doctor_email"] = doctor_email
     prescriptions = list(prescription_collection.find(query, {"_id": 0}))
+    return jsonify({"prescriptions": prescriptions}), 200
+
+@prescription_bp.route("/records", methods=["GET"])
+@token_required
+def get_doctor_patient_records(decoded_token):
+    doctor_email = request.args.get("doctor_email")
+    if not doctor_email:
+        return jsonify({"error": "doctor_email is required"}), 400
+    records = facade.get_doctor_patient_records(doctor_email)
+    return jsonify({"appointments": records}), 200
+
+@prescription_bp.route("/view", methods=["GET"])
+@token_required
+def get_patient_prescriptions(decoded_token):
+    doctor_email = request.args.get("doctor_email")
+    patient_email = request.args.get("patient_email")
+    if not doctor_email or not patient_email:
+        return jsonify({"error": "doctor_email and patient_email are required"}), 400
+    prescriptions = facade.get_patient_prescriptions(doctor_email, patient_email)
     return jsonify({"prescriptions": prescriptions}), 200
