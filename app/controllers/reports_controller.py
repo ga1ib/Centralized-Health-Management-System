@@ -7,6 +7,30 @@ from datetime import datetime
 reports_bp = Blueprint("reports", __name__)
 db_instance = DatabaseConnection().get_database()
 billing_collection = db_instance["Billing"]  # Example: using your Billing schema
+reports_collection = db_instance["Reports"]  # Define the Reports collection
+
+@reports_bp.route("/all", methods=["GET"])
+@token_required
+def get_all_reports(decoded_token):
+    """
+    Returns every document in the Reports collection.
+    """
+    try:
+        docs = list(reports_collection.find({}, {"_id": 0}))
+
+        # Ensure any datetime fields serialize to ISO strings
+        for d in docs:
+            for k, v in d.items():
+                if isinstance(v, datetime):
+                    d[k] = v.isoformat()
+
+        return jsonify({"reports": docs}), 200
+
+    except Exception as e:
+        return jsonify({
+            "error": "Failed to fetch reports.",
+            "details": str(e)
+        }), 500
 
 @reports_bp.route("/hospital", methods=["GET"])
 @token_required

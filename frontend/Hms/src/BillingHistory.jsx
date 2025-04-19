@@ -1,3 +1,4 @@
+//BillingHistory.jsx
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Header from './header';
@@ -77,15 +78,17 @@ const BillingHistory = () => {
                       <td className="px-6 py-4 text-gray-800">{b.payment_date}</td>
                       <td className="px-6 py-4 text-gray-800">{b.payment_time}</td>
                       <td className="px-6 py-4">
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                            b.payment_status === 'paid'
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-red-100 text-red-800'
-                          }`}
-                        >
-                          {b.payment_status}
-                        </span>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-semibold capitalize ${
+                          b.payment_status?.trim().toLowerCase() === 'paid'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}
+                      >
+                        {b.payment_status}
+                      </span>
+
+
                       </td>
                       <td className="px-6 py-4 text-gray-800">{b.transaction_id}</td>
                     </tr>
