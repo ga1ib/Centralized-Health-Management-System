@@ -20,7 +20,7 @@ import PrivacyPolicy from "./PrivacyPolicy";
 import TermsAndConditions from "./TermsAndConditions";
 import Support from "./Support";
 import PatientPayment from "./PatientPayment";
-
+import DoctorPatientHistory from "./DoctorPatientHistory";
 
 
 function App() {
@@ -98,6 +98,14 @@ function App() {
           element={
             <PrivateRoute>
               <DoctorAppointmentList />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/doctor-patient-history"
+          element={
+            <PrivateRoute>
+              <DoctorPatientHistory />
             </PrivateRoute>
           }
         />

@@ -22,7 +22,8 @@ const Reports = () => {
     service:       "",
     amount:        "",
     report_date:   "",   // ← new
-    report_time:   ""    // ← new
+    report_time:   "",   // ← new
+    patient_email: ""    // ← new
   });
   const [showUploadForm, setShowUploadForm] = useState(false);
 
@@ -96,6 +97,8 @@ const Reports = () => {
     formData.append("amount", uploadForm.amount);
     formData.append("report_date", uploadForm.report_date);  // ← new
     formData.append("report_time", uploadForm.report_time);  // ← new
+    formData.append("patient_email", uploadForm.patient_email || ""); // ← new
+    formData.append("doctor_email", localStorage.getItem("email") || ""); // ← new
 
     try {
       const token = localStorage.getItem("token");
@@ -115,7 +118,8 @@ const Reports = () => {
         service:      "",
         amount:       "",
         report_date:  "",
-        report_time:  ""
+        report_time:  "",
+        patient_email: ""
       });
       setShowUploadForm(false);
       fetchReports();
@@ -234,6 +238,17 @@ const Reports = () => {
                       type="time"
                       name="report_time"
                       value={uploadForm.report_time}
+                      onChange={handleUploadInputChange}
+                      required
+                      className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 mb-2">Patient Email</label>
+                    <input
+                      type="email"
+                      name="patient_email"
+                      value={uploadForm.patient_email}
                       onChange={handleUploadInputChange}
                       required
                       className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"

@@ -90,18 +90,30 @@ const DoctorAppointmentList = () => {
                                     <td className="px-6 py-2">{apt.date}</td>
                                     <td className="px-6 py-2">{apt.time}</td>
                                     <td className="px-6 py-2">{apt.status}</td>
-                                    <td className="px-6 py-2">
+                                    <td className="px-6 py-2 flex flex-col gap-2 md:flex-row">
                                         <button
                                             onClick={() => handleUpdate(apt._id)}
-                                            className="bg-yellow-400 px-3 py-1 rounded mr-2 text-white"
+                                            className="bg-yellow-400 px-3 py-1 rounded text-white mb-1 md:mb-0 md:mr-2"
                                         >
                                             Edit
                                         </button>
                                         <button
                                             onClick={() => handleDelete(apt._id)}
-                                            className="bg-red-600 px-3 py-1 rounded text-white"
+                                            className="bg-red-600 px-3 py-1 rounded text-white mb-1 md:mb-0 md:mr-2"
                                         >
                                             Delete
+                                        </button>
+                                        <button
+                                            onClick={() => window.location.href = `/doctor-add-prescription?patient_email=${encodeURIComponent(apt.patient_email)}&patient_name=${encodeURIComponent(apt.patient_name)}`}
+                                            className="bg-green-600 px-3 py-1 rounded text-white mb-1 md:mb-0 md:mr-2"
+                                        >
+                                            Add Prescription
+                                        </button>
+                                        <button
+                                            onClick={() => window.location.href = `/doctor-patient-history?patient_email=${encodeURIComponent(apt.patient_email)}`}
+                                            className="bg-blue-600 px-3 py-1 rounded text-white mb-1 md:mb-0 md:mr-2"
+                                        >
+                                            History
                                         </button>
                                     </td>
                                 </tr>

@@ -136,6 +136,8 @@ def upload_report(decoded_token):
             "upload_date":  upload_dt,
             "uploaded_by":  decoded_token["email"],
             "patient_name": request.form.get("patient_name", ""),
+            "patient_email": request.form.get("patient_email", ""),
+            "doctor_email": request.form.get("doctor_email", ""),
             "service":      request.form.get("service", ""),
             "amount":       float(request.form.get("amount", 0)),
             "status":       "Unpaid"
@@ -154,3 +156,17 @@ def upload_report(decoded_token):
             "error":   "Failed to upload report",
             "details": str(e)
         }), 500
+
+@reports_bp.route("/doctor-patient-history", methods=["GET"])
+@token_required
+def get_doctor_patient_reports(decoded_token):
+    patient_email = request.args.get("patient_email")
+    doctor_email = request.args.get("doctor_email")
+    query = {}
+    if patient_email:
+        query["patient_email"] = patient_email
+    if doctor_email:
+        query["doctor_email"] = doctor_email
+    # Assuming reports_collection contains doctor_email and patient_email fields
+    reports = list(reports_collection.find(query, {"_id": 0}))
+    return jsonify({"reports": reports}), 200
