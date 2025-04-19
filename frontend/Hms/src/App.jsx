@@ -23,6 +23,7 @@ import PatientPayment from "./PatientPayment";
 import DoctorPatientHistory from "./DoctorPatientHistory";
 import DoctorSchedule from "./DoctorSchedule";
 import DoctorManageRecords from "./DoctorManageRecords";
+import DoctorViewPrescriptions from "./DoctorViewPrescriptions";
 
 function App() {
   return (
@@ -123,6 +124,14 @@ function App() {
           element={
             <PrivateRoute>
               <DoctorManageRecords />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/doctor-view-prescriptions"
+          element={
+            <PrivateRoute>
+              <DoctorViewPrescriptions />
             </PrivateRoute>
           }
         />
