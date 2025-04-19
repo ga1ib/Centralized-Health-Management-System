@@ -25,9 +25,11 @@ const DoctorDashboard = () => {
           <div className="bg-white p-6 rounded-lg shadow-md text-center">
             <h3 className="text-xl font-semibold">Patient Records</h3>
             <p className="text-gray-600">Access and update patient medical records.</p>
-            <button className="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-              Manage Records
-            </button>
+            <Link to="/doctor-manage-records">
+              <button className="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                Manage Records
+              </button>
+            </Link>
           </div>
           <div className="bg-white p-6 rounded-lg shadow-md text-center">
             <h3 className="text-xl font-semibold">Prescriptions</h3>

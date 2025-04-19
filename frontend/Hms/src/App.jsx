@@ -22,6 +22,7 @@ import Support from "./Support";
 import PatientPayment from "./PatientPayment";
 import DoctorPatientHistory from "./DoctorPatientHistory";
 import DoctorSchedule from "./DoctorSchedule";
+import DoctorManageRecords from "./DoctorManageRecords";
 
 function App() {
   return (
@@ -114,6 +115,14 @@ function App() {
           element={
             <PrivateRoute>
               <DoctorSchedule />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/doctor-manage-records"
+          element={
+            <PrivateRoute>
+              <DoctorManageRecords />
             </PrivateRoute>
           }
         />
