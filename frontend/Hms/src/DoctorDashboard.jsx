@@ -1,5 +1,6 @@
 // DoctorDashboard.jsx
 import React from "react";
+import { Link } from "react-router-dom";
 import Header from "./header";
 import Footer from "./footer";
 
@@ -15,9 +16,11 @@ const DoctorDashboard = () => {
           <div className="bg-white p-6 rounded-lg shadow-md text-center">
             <h3 className="text-xl font-semibold">Upcoming Appointments</h3>
             <p className="text-gray-600">Manage your scheduled patient visits.</p>
-            <button className="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-              View Schedule
-            </button>
+            <Link to="/doctor-schedule">
+              <button className="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                View Schedule
+              </button>
+            </Link>
           </div>
           <div className="bg-white p-6 rounded-lg shadow-md text-center">
             <h3 className="text-xl font-semibold">Patient Records</h3>

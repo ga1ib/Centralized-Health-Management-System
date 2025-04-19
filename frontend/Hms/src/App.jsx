@@ -21,7 +21,7 @@ import TermsAndConditions from "./TermsAndConditions";
 import Support from "./Support";
 import PatientPayment from "./PatientPayment";
 import DoctorPatientHistory from "./DoctorPatientHistory";
-
+import DoctorSchedule from "./DoctorSchedule";
 
 function App() {
   return (
@@ -106,6 +106,14 @@ function App() {
           element={
             <PrivateRoute>
               <DoctorPatientHistory />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/doctor-schedule"
+          element={
+            <PrivateRoute>
+              <DoctorSchedule />
             </PrivateRoute>
           }
         />
