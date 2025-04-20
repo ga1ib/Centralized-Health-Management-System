@@ -1,39 +1,62 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import {
   FaSpinner,
   FaFilter,
   FaEdit,
   FaTrash,
-  FaUpload
+  FaUpload,
+  FaEye,
+  FaTimes
 } from "react-icons/fa";
 import { motion } from "framer-motion";
 import Header from "./header";
 import Footer from "./footer";
 
 const Reports = () => {
-  const [reports, setReports]           = useState([]);
+  const [reports, setReports] = useState([]);
   const [statusFilter, setStatusFilter] = useState("");
-  const [error, setError]               = useState(null);
-  const [loading, setLoading]           = useState(true);
-  const [uploadForm, setUploadForm]     = useState({
-    file:          null,
-    patient_name:  "",
-    service:       "",
-    amount:        "",
-    report_date:   "",   // ← new
-    report_time:   "",   // ← new
-    patient_email: ""    // ← new
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [uploadForm, setUploadForm] = useState({
+    file: null,
+    patient_name: "",
+    service: "",
+    amount: "",
+    report_date: "",
+    report_time: "",
+    patient_email: ""
   });
   const [showUploadForm, setShowUploadForm] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [viewFileType, setViewFileType] = useState(null);
 
-  const fetchReports = async () => {
+  const navigate = useNavigate();
+
+  const checkAuth = () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      return null;
+    }
+    return token;
+  };
+
+  const fetchReports = useCallback(async () => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("Authentication token is missing.");
+      const token = checkAuth();
+      if (!token) return;
+
       const { data } = await axios.get(
         "http://localhost:5000/api/reports/all",
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        }
       );
       setReports(data.reports || []);
     } catch (err) {
@@ -41,9 +64,11 @@ const Reports = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [checkAuth]);
 
-  useEffect(() => { fetchReports(); }, []);
+  useEffect(() => {
+    fetchReports();
+  }, [fetchReports]);
 
   const handleStatusFilterChange = e => setStatusFilter(e.target.value);
 
@@ -52,24 +77,45 @@ const Reports = () => {
       `Current status is "${currentStatus}". Enter new status ("Paid" or "Unpaid"):`,
       currentStatus
     );
-    if (!newStatus || !["Paid","Unpaid"].includes(newStatus)) return;
+    if (!newStatus || !["Paid", "Unpaid"].includes(newStatus)) return;
     try {
-      const token = localStorage.getItem("token");
-      await axios.put(
+      const token = checkAuth();
+      if (!token) return;
+
+      // Ensure we have a valid id
+      if (!id) {
+        setError("Invalid report ID");
+        return;
+      }
+
+      const response = await axios.put(
         `http://localhost:5000/api/reports/${id}`,
         { status: newStatus },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { 
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          } 
+        }
       );
-      fetchReports();
-    } catch {
-      setError("Failed to update status");
+      
+      if (response.status === 200) {
+        await fetchReports();
+        setError(null);
+      }
+    } catch (err) {
+      const errorMessage = err.response?.data?.error || err.response?.data?.details || err.message;
+      setError(`Failed to update status: ${errorMessage}`);
+      console.error('Status update error:', err, 'Report ID:', id);
     }
   };
 
   const handleDeleteReport = async id => {
     if (!window.confirm("Delete this report?")) return;
     try {
-      const token = localStorage.getItem("token");
+      const token = checkAuth();
+      if (!token) return;
+
       await axios.delete(
         `http://localhost:5000/api/reports/${id}`,
         { headers: { Authorization: `Bearer ${token}` } }
@@ -90,18 +136,24 @@ const Reports = () => {
 
   const handleUpload = async e => {
     e.preventDefault();
-    const formData = new FormData();
-    formData.append("file", uploadForm.file);
-    formData.append("patient_name", uploadForm.patient_name);
-    formData.append("service", uploadForm.service);
-    formData.append("amount", uploadForm.amount);
-    formData.append("report_date", uploadForm.report_date);  // ← new
-    formData.append("report_time", uploadForm.report_time);  // ← new
-    formData.append("patient_email", uploadForm.patient_email || ""); // ← new
-    formData.append("doctor_email", localStorage.getItem("email") || ""); // ← new
-
     try {
-      const token = localStorage.getItem("token");
+      const token = checkAuth();
+      if (!token) return;
+
+      const formData = new FormData();
+      if (!uploadForm.file) {
+        throw new Error("Please select a file to upload");
+      }
+
+      formData.append("file", uploadForm.file);
+      formData.append("patient_name", uploadForm.patient_name);
+      formData.append("service", uploadForm.service);
+      formData.append("amount", uploadForm.amount);
+      formData.append("report_date", uploadForm.report_date);
+      formData.append("report_time", uploadForm.report_time);
+      formData.append("patient_email", uploadForm.patient_email || "");
+      formData.append("doctor_email", localStorage.getItem("email") || "");
+
       await axios.post(
         "http://localhost:5000/api/reports/upload",
         formData,
@@ -112,21 +164,80 @@ const Reports = () => {
           }
         }
       );
+
       setUploadForm({
-        file:         null,
+        file: null,
         patient_name: "",
-        service:      "",
-        amount:       "",
-        report_date:  "",
-        report_time:  "",
+        service: "",
+        amount: "",
+        report_date: "",
+        report_time: "",
         patient_email: ""
       });
       setShowUploadForm(false);
       fetchReports();
-    } catch {
-      setError("Failed to upload report");
+      setError(null);
+    } catch (err) {
+      const errorMessage = err.response?.data?.error || err.response?.data?.details || err.message;
+      setError(errorMessage);
     }
   };
+
+  const handleViewFile = async (filename) => {
+    try {
+      const token = checkAuth();
+      if (!token) return;
+
+      setError(null);
+      setLoading(true);
+
+      const url = `http://localhost:5000/api/reports/download/${encodeURIComponent(filename)}`;
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': '*/*'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch file: ${response.statusText}`);
+      }
+
+      const blob = await response.blob();
+      
+      // Clean up previous blob URL
+      if (selectedFile) {
+        URL.revokeObjectURL(selectedFile);
+      }
+
+      // Create new blob URL
+      const blobUrl = URL.createObjectURL(blob);
+      
+      // Set file type based on extension
+      const fileType = filename.split('.').pop().toLowerCase();
+      setViewFileType(fileType);
+      
+      setSelectedFile(blobUrl);
+      setShowViewModal(true);
+    } catch (error) {
+      console.error('File viewing error:', error);
+      setError(error.message || "Failed to view file. Please try again.");
+      setShowViewModal(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Clean up function to remove blob URLs
+  useEffect(() => {
+    return () => {
+      if (selectedFile) {
+        URL.revokeObjectURL(selectedFile);
+      }
+    };
+  }, []);
 
   const filteredReports = statusFilter
     ? reports.filter(r => r.status?.toLowerCase() === statusFilter.toLowerCase())
@@ -283,6 +394,50 @@ const Reports = () => {
               </motion.div>
             )}
 
+            {/* View Modal */}
+            {showViewModal && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-lg p-4 w-11/12 h-5/6 relative">
+                  <button
+                    onClick={() => {
+                      setShowViewModal(false);
+                      setSelectedFile(null);
+                      setViewFileType(null);
+                      // Clean up blob URL
+                      if (selectedFile) {
+                        window.URL.revokeObjectURL(selectedFile);
+                      }
+                    }}
+                    className="absolute top-2 right-2 text-gray-600 hover:text-gray-800"
+                  >
+                    <FaTimes size={24} />
+                  </button>
+                  {selectedFile && (
+                    viewFileType === 'pdf' ? (
+                      <iframe
+                        src={selectedFile}
+                        className="w-full h-full rounded border-0"
+                        title="PDF Preview"
+                        type="application/pdf"
+                      />
+                    ) : viewFileType === 'json' ? (
+                      <iframe
+                        src={selectedFile}
+                        className="w-full h-full rounded border-0"
+                        title="JSON Preview"
+                      />
+                    ) : (
+                      <img
+                        src={selectedFile}
+                        alt="Report Preview"
+                        className="w-full h-full object-contain"
+                      />
+                    )
+                  )}
+                </div>
+              </div>
+            )}
+
             <div className="overflow-x-auto bg-white/50 backdrop-blur-lg rounded-lg shadow-lg">
               <table className="min-w-full">
                 <thead className="bg-white/70">
@@ -322,6 +477,24 @@ const Reports = () => {
                         </span>
                       </td>
                       <td className="px-6 py-3 flex gap-2">
+                        {r.pdf_file && (
+                          <button
+                            onClick={() => handleViewFile(r.pdf_file)}
+                            className="p-2 bg-blue-500 text-white rounded-full shadow hover:bg-blue-600 transition flex items-center gap-1"
+                            title="View PDF"
+                          >
+                            <FaEye /> PDF
+                          </button>
+                        )}
+                        {r.original_file && (
+                          <button
+                            onClick={() => handleViewFile(r.original_file)}
+                            className="p-2 bg-gray-500 text-white rounded-full shadow hover:bg-gray-600 transition flex items-center gap-1"
+                            title="View Original"
+                          >
+                            <FaEye /> File
+                          </button>
+                        )}
                         <button
                           onClick={() => handleUpdateStatus(r._id, r.status)}
                           className="p-2 bg-yellow-200 rounded-full shadow hover:bg-yellow-300 transition"
@@ -349,3 +522,4 @@ const Reports = () => {
 };
 
 export default Reports;
+

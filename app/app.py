@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, send_from_directory, request
 from flask_cors import CORS
 from flask_mail import Mail
 import os
@@ -21,7 +21,15 @@ logger = logging.getLogger(__name__)
 
 def create_app():
     app = Flask(__name__)
-    CORS(app)
+    
+    # Configure CORS with proper settings
+    CORS(app, 
+         origins=["http://localhost:5173"],
+         allow_headers=["Content-Type", "Authorization", "Accept"],
+         expose_headers=["Content-Disposition", "Content-Length", "Content-Type"],
+         supports_credentials=True,
+         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+         max_age=3600)
 
     # Basic Configuration
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
@@ -46,8 +54,10 @@ def create_app():
     logger.info(f"MAIL_USERNAME: {app.config['MAIL_USERNAME']}")
     logger.info(f"MAIL_USE_TLS: {app.config['MAIL_USE_TLS']}")
 
-    # Configure email notifier
-    email_notifier.set_mailer(send_otp_email)
+    # Configure upload folder
+    UPLOAD_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'uploads', 'reports'))
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+    app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
     # Register Blueprints
     from app.controllers.user_controller import user_bp
@@ -62,6 +72,23 @@ def create_app():
     app.register_blueprint(appointment_bp, url_prefix="/api/appointments")
     app.register_blueprint(billing_bp, url_prefix="/api/billing")
     app.register_blueprint(prescription_bp, url_prefix="/api/prescriptions")
+
+    # Configure email notifier
+    email_notifier.set_mailer(send_otp_email)
+
+    # Handle OPTIONS requests and add CORS headers to all responses
+    @app.after_request
+    def after_request(response):
+        if request.method == 'OPTIONS':
+            response = app.make_default_options_response()
+        
+        response.headers.update({
+            'Access-Control-Allow-Origin': 'http://localhost:5173',
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization, Accept',
+            'Access-Control-Expose-Headers': 'Content-Disposition, Content-Length, Content-Type'
+        })
+        return response
 
     return app
 

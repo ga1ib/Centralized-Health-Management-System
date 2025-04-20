@@ -11,5 +11,5 @@
 
 ## Install this command:
 ```
-pip install Flask flask-bcrypt pymongo python-dotenv flask-cors PyJWT flask-jwt-extended && python -m app.app
+pip install Flask flask-bcrypt pymongo python-dotenv flask-cors PyJWT PyPDF2 reportlab flask-jwt-extended && python -m app.app
 ```
