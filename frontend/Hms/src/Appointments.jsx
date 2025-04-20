@@ -249,6 +249,7 @@ const Appointments = () => {
                   className="w-full p-3 rounded-lg border-2 border-green-300 focus:outline-none focus:ring-2 focus:ring-green-500"
                 >
                   <option value="pending">Pending</option>
+                  <option value="Scheduled">Scheduled</option>
                   <option value="completed">Completed</option>
                   <option value="cancelled">Cancelled</option>
                 </select>
