@@ -7,6 +7,7 @@ class AppointmentModel:
         self.date = date
         self.time = time
         self.status = status
+        self.priority = "normal"  # Default priority
         self.created_at = datetime.now()
         self.updated_at = datetime.now()
 
@@ -17,6 +18,7 @@ class AppointmentModel:
             "date": self.date,
             "time": self.time,
             "status": self.status,
+            "priority": self.priority,
             "created_at": self.created_at,
             "updated_at": self.updated_at
         }
@@ -30,6 +32,8 @@ class AppointmentModel:
             time=data.get("time"),
             status=data.get("status", "pending")
         )
+        if "priority" in data:
+            appointment.priority = data["priority"]
         if "created_at" in data:
             appointment.created_at = data["created_at"]
         if "updated_at" in data:

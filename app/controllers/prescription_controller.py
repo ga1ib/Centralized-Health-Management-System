@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from app.services.db_connection import DatabaseConnection
 from app.middleware.auth_middleware import token_required
 from app.models.prescription_model import PrescriptionModel
-from app.services.hms_facade import HMSFacade
+from app.services.hms_facade import HMSFacade #  Facade Design Pattern applied here
 
 prescription_bp = Blueprint("prescription", __name__)
 db_instance = DatabaseConnection().get_database()

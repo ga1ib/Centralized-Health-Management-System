@@ -4,6 +4,7 @@ from app.services.db_connection import DatabaseConnection
 from app.middleware.auth_middleware import token_required
 from app.services.observer.appointment_subject import AppointmentSubject
 from app.services.observer.appointment_logger import AppointmentLogger
+from app.services.appointment_factory import AppointmentFactory
 from bson import ObjectId
 
 appointment_bp = Blueprint("appointment", __name__)
@@ -12,14 +13,15 @@ appointment_bp = Blueprint("appointment", __name__)
 db_instance = DatabaseConnection().get_database()
 appointments_collection = db_instance["Appointments"]
 
-# Initialize the observer pattern
+# Initialize the observer pattern and factory
 appointment_subject = AppointmentSubject()
 appointment_logger = AppointmentLogger()
 appointment_subject.attach(appointment_logger)
+appointment_factory = AppointmentFactory()
 
-# --------------------------------------------------
+
 # GET: Retrieve all appointments
-# --------------------------------------------------
+
 @appointment_bp.route("/", methods=["GET"])
 @token_required
 def get_all_appointments(decoded_token):
@@ -32,9 +34,9 @@ def get_all_appointments(decoded_token):
     except Exception as e:
         return jsonify({"error": "Failed to retrieve appointments", "details": str(e)}), 500
 
-# --------------------------------------------------
+
 # POST: Create a new appointment
-# --------------------------------------------------
+
 @appointment_bp.route("/", methods=["POST"])
 @token_required
 def create_appointment(decoded_token):
@@ -44,16 +46,28 @@ def create_appointment(decoded_token):
         return jsonify({"error": "Missing required appointment fields"}), 400
 
     try:
-        result = appointments_collection.insert_one(data)
+        # Use factory to create appointment
+        appointment = appointment_factory.create_appointment(data)
+        
+        # Convert appointment to dictionary and add additional fields
+        appointment_data = appointment.to_dict()
+        appointment_data.update({
+            "patient_name": data["patient_name"],
+            "doctor_name": data["doctor_name"]
+        })
+        
+        # Insert into database
+        result = appointments_collection.insert_one(appointment_data)
         new_appt = appointments_collection.find_one({"_id": result.inserted_id})
         new_appt["_id"] = str(new_appt["_id"])
+        
         return jsonify({"message": "Appointment created successfully", "appointment": new_appt}), 201
     except Exception as e:
         return jsonify({"error": "Failed to create appointment", "details": str(e)}), 500
 
-# --------------------------------------------------
+
 # PUT: Update appointment status
-# --------------------------------------------------
+
 @appointment_bp.route("/<appointment_id>", methods=["PUT"])
 @token_required
 def update_appointment_status(decoded_token, appointment_id):
@@ -86,9 +100,9 @@ def update_appointment_status(decoded_token, appointment_id):
     except Exception as e:
         return jsonify({"error": "Failed to update appointment status", "details": str(e)}), 500
 
-# --------------------------------------------------
+
 # DELETE: Delete an appointment
-# --------------------------------------------------
+
 @appointment_bp.route("/<appointment_id>", methods=["DELETE"])
 @token_required
 def delete_appointment(decoded_token, appointment_id):

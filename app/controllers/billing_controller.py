@@ -10,9 +10,9 @@ billing_bp = Blueprint("billing", __name__)
 db_instance = DatabaseConnection().get_database()
 billing_collection = db_instance["Billing"]
 
-# --------------------------------------------------
+
 # GET: Retrieve all billing records (admin)
-# --------------------------------------------------
+
 @billing_bp.route("/", methods=["GET"])
 @token_required
 def get_all_billings(decoded_token):
@@ -23,9 +23,9 @@ def get_all_billings(decoded_token):
     except Exception as e:
         return jsonify({"error": f"Failed to fetch billing data: {str(e)}"}), 500
 
-# --------------------------------------------------
+
 # POST: process_payment (unchanged)
-# --------------------------------------------------
+
 
 
 @billing_bp.route("/", methods=["POST"])
@@ -41,7 +41,7 @@ def process_payment(decoded_token):
         
         if not all(field in data for field in required_fields):
             return jsonify({"error": "Missing required payment fields"}), 400
-
+    # Strategy Pattern implementation
         # Use the card payment strategy
         payment_strategy = CardPaymentStrategy()
         payment_processor = PaymentProcessor(payment_strategy)
