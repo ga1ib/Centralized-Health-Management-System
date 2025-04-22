@@ -6,6 +6,7 @@ from app.utils.encryption import hash_password  # For hashing the password on up
 from app.utils.jwt_auth import generate_jwt
 
 user_bp = Blueprint("user", __name__)
+# Singleton Pattern:
 
 # Get a database instance and the Users collection from your MongoDB
 db_instance = DatabaseConnection().get_database()

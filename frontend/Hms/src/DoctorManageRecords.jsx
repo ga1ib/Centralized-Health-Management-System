@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { FaSpinner, FaSearch, FaEye } from "react-icons/fa";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Header from "./header";
@@ -18,13 +20,7 @@ const DoctorManageRecords = () => {
         const response = await axios.get("http://localhost:5000/api/appointments/", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        console.log("API appointments response:", response.data);
-        if (!response.data || !Array.isArray(response.data.appointments)) {
-          setError("API did not return appointments array. Raw response: " + JSON.stringify(response.data));
-          setLoading(false);
-          return;
-        }
-        const filtered = response.data.appointments.filter(
+        const filtered = (response.data.appointments || []).filter(
           a =>
             (a.doctor_email === doctorEmail || a.doctorEmail === doctorEmail) &&
             (a.status?.toLowerCase() === "visited" || a.status?.toLowerCase() === "completed")
@@ -40,53 +36,95 @@ const DoctorManageRecords = () => {
     fetchAppointments();
   }, []);
 
-  if (loading) return <div className="p-8 text-white">Loading...</div>;
-  if (error) return <div className="p-8 text-red-600 bg-white"><b>Error:</b> {error}</div>;
-
   return (
     <div className="flex flex-col min-h-screen bg-[url('../image/bg-01.jpg')] bg-fixed bg-cover bg-center">
       <Header />
-      <main className="flex-grow container mx-auto py-10 px-6">
-        <h2 className="text-2xl font-bold mb-6 text-white text-center">Manage Patient Records</h2>
-        {appointments.length === 0 ? (
-          <div className="text-white">
-            No records found.<br />
-            <pre style={{color: 'white', background: '#222', padding: 8, borderRadius: 4, marginTop: 8}}>
-              {JSON.stringify(appointments, null, 2)}
-            </pre>
+      <main className="flex-grow container mx-auto py-16 px-6">
+        <motion.h2
+          className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-blue-500 text-center mb-12"
+          initial={{ opacity: 0, y: -30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+        >
+          Patient Records
+        </motion.h2>
+
+        {loading ? (
+          <div className="flex justify-center py-20">
+            <FaSpinner className="animate-spin text-white text-5xl" />
+          </div>
+        ) : error ? (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6">
+            {error}
+          </div>
+        ) : appointments.length === 0 ? (
+          <div className="bg-white/90 backdrop-blur-lg p-8 rounded-2xl shadow-2xl text-center">
+            <FaSearch className="mx-auto text-4xl text-gray-400 mb-4" />
+            <p className="text-gray-600">No patient records found.</p>
           </div>
         ) : (
-          <table className="min-w-full bg-white rounded shadow">
-            <thead>
-              <tr>
-                <th className="py-2 px-4 border-b">Patient Name</th>
-                <th className="py-2 px-4 border-b">Date</th>
-                <th className="py-2 px-4 border-b">Status</th>
-                <th className="py-2 px-4 border-b text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {appointments.map((appt) => (
-                <tr key={appt._id || appt.id}>
-                  <td className="py-2 px-4 border-b">{appt.patient_name || appt.patientName || appt.patient_email || appt.patientEmail}</td>
-                  <td className="py-2 px-4 border-b">{appt.date ? new Date(appt.date).toLocaleString() : "-"}</td>
-                  <td className="py-2 px-4 border-b">{appt.status}</td>
-                  <td className="py-2 px-4 border-b text-center">
-                    <button
-                      className="px-4 py-1 bg-blue-600 text-white rounded inline-block"
-                      onClick={() =>
-                        navigate(
-                          `/doctor-view-prescriptions?patient_email=${encodeURIComponent(appt.patient_email || appt.patientEmail)}&patient_name=${encodeURIComponent(appt.patient_name || appt.patientName || "")}`
-                        )
-                      }
-                    >
-                      View
-                    </button>
-                  </td>
+          <motion.div
+            className="overflow-x-auto bg-white/80 backdrop-blur-lg rounded-xl p-6 shadow-2xl"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <table className="min-w-full">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="px-6 py-3 text-left text-gray-700 font-semibold">Patient</th>
+                  <th className="px-6 py-3 text-left text-gray-700 font-semibold">Date</th>
+                  <th className="px-6 py-3 text-left text-gray-700 font-semibold">Status</th>
+                  <th className="px-6 py-3 text-center text-gray-700 font-semibold">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {appointments.map((appt, index) => (
+                  <motion.tr
+                    key={appt._id || appt.id}
+                    className="border-b hover:bg-gray-50"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.1 }}
+                  >
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-medium text-gray-900">
+                        {appt.patient_name || appt.patientName}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {appt.patient_email || appt.patientEmail}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900">
+                      {appt.date ? new Date(appt.date).toLocaleDateString() : "-"}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2 py-1 text-xs font-semibold rounded-full 
+                        ${appt.status?.toLowerCase() === 'completed' 
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-blue-100 text-blue-800'}`}
+                      >
+                        {appt.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <button
+                        onClick={() =>
+                          navigate(
+                            `/doctor-view-prescriptions?patient_email=${encodeURIComponent(appt.patient_email || appt.patientEmail)}&patient_name=${encodeURIComponent(appt.patient_name || appt.patientName || "")}`
+                          )
+                        }
+                        className="inline-flex items-center px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-lg hover:bg-blue-600 transition"
+                      >
+                        <FaEye className="mr-2" />
+                        View Records
+                      </button>
+                    </td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
+          </motion.div>
         )}
       </main>
       <Footer />

@@ -89,20 +89,48 @@ class FileFormatAdapter(ABC):
 class PDFAdapter(FileFormatAdapter):
     def convert_to_format(self, data, output_path):
         try:
-            # Create PDF using PyPDF2
-            pdf_writer = PyPDF2.PdfWriter()
-            page = pdf_writer.add_blank_page(width=612, height=792)  # Standard letter size
-
-            # Create temporary file to write content
-            with open(output_path, 'wb') as output_file:
-                # Write the data
-                content = ["Hospital Report\n\n"]
-                for key, value in data.items():
-                    if key != 'file' and value is not None:
-                        content.append(f"{key.replace('_', ' ').title()}: {str(value)}\n")
-                
-                # Save the PDF
-                pdf_writer.write(output_file)
+            # Create a new PDF with ReportLab (more suitable for text content)
+            c = canvas.Canvas(output_path, pagesize=letter)
+            y = 750  # Starting y position from top
+            
+            # Add title
+            c.setFont("Helvetica-Bold", 16)
+            c.drawString(50, y, "Hospital Report")
+            y -= 30
+            
+            # Add report details
+            c.setFont("Helvetica", 12)
+            for key, value in data.items():
+                if key not in ['file', '_id'] and value is not None:  # Skip file and id fields
+                    # Format the key name
+                    key_name = key.replace('_', ' ').title()
+                    content = f"{key_name}: {str(value)}"
+                    
+                    # Handle long lines
+                    if len(content) > 70:  # If content is too long
+                        words = content.split()
+                        line = ""
+                        for word in words:
+                            if len(line + " " + word) < 70:
+                                line += " " + word
+                            else:
+                                c.drawString(50, y, line.strip())
+                                y -= 20
+                                line = word
+                        if line:  # Draw any remaining text
+                            c.drawString(50, y, line.strip())
+                    else:
+                        c.drawString(50, y, content)
+                    
+                    y -= 20
+                    
+                    # Add a new page if we're running out of space
+                    if y < 50:
+                        c.showPage()
+                        y = 750
+                        c.setFont("Helvetica", 12)
+            
+            c.save()
             return True
         except Exception as e:
             logger.error(f"Error converting to PDF: {str(e)}")
@@ -439,38 +467,78 @@ def convert_report(decoded_token, report_id):
             "details": str(e)
         }), 500
 
-@reports_bp.route("/<report_id>", methods=["PUT"])
+@reports_bp.route("/<report_id>", methods=["PUT", "DELETE"])
 @token_required
-def update_report(decoded_token, report_id):
-    try:
-        data = request.json
-        if "status" not in data:
-            return jsonify({"error": "Status field is required"}), 400
-
+def update_or_delete_report(decoded_token, report_id):
+    if request.method == "DELETE":
         try:
-            report_obj_id = ObjectId(report_id)
-        except Exception:
-            return jsonify({"error": "Invalid report ID format"}), 400
+            # Convert string ID to ObjectId
+            try:
+                report_obj_id = ObjectId(report_id)
+            except Exception:
+                return jsonify({"error": "Invalid report ID format"}), 400
 
-        # Check if report exists
-        report = reports_collection.find_one({"_id": report_obj_id})
-        if not report:
-            return jsonify({"error": "Report not found"}), 404
+            # Check if report exists
+            report = reports_collection.find_one({"_id": report_obj_id})
+            if not report:
+                return jsonify({"error": "Report not found"}), 404
 
-        # Update the report status
-        result = reports_collection.update_one(
-            {"_id": report_obj_id},
-            {"$set": {"status": data["status"]}}
-        )
+            # Delete associated files if they exist
+            for file_key in ['original_file', 'pdf_file', 'json_file']:
+                if file_key in report:
+                    file_path = os.path.join(UPLOAD_FOLDER, report[file_key])
+                    try:
+                        if os.path.exists(file_path):
+                            os.remove(file_path)
+                    except Exception as e:
+                        logger.error(f"Error deleting file {file_path}: {str(e)}")
 
-        if result.modified_count > 0:
-            return jsonify({"message": "Report status updated successfully"}), 200
-        else:
-            return jsonify({"error": "No changes made to report"}), 400
+            # Delete the report from database
+            result = reports_collection.delete_one({"_id": report_obj_id})
+            
+            if result.deleted_count > 0:
+                return jsonify({"message": "Report deleted successfully"}), 200
+            else:
+                return jsonify({"error": "Failed to delete report"}), 500
 
-    except Exception as e:
-        print(f"Error updating report status: {str(e)}")  # Add logging
-        return jsonify({
-            "error": "Failed to update report status",
-            "details": str(e)
-        }), 500
+        except Exception as e:
+            logger.error(f"Error deleting report: {str(e)}")
+            return jsonify({
+                "error": "Failed to delete report",
+                "details": str(e)
+            }), 500
+
+    # If method is PUT, handle update
+    elif request.method == "PUT":
+        try:
+            data = request.json
+            if "status" not in data:
+                return jsonify({"error": "Status field is required"}), 400
+
+            try:
+                report_obj_id = ObjectId(report_id)
+            except Exception:
+                return jsonify({"error": "Invalid report ID format"}), 400
+
+            # Check if report exists
+            report = reports_collection.find_one({"_id": report_obj_id})
+            if not report:
+                return jsonify({"error": "Report not found"}), 404
+
+            # Update the report status
+            result = reports_collection.update_one(
+                {"_id": report_obj_id},
+                {"$set": {"status": data["status"]}}
+            )
+
+            if result.modified_count > 0:
+                return jsonify({"message": "Report status updated successfully"}), 200
+            else:
+                return jsonify({"error": "No changes made to report"}), 400
+
+        except Exception as e:
+            logger.error(f"Error updating report status: {str(e)}")
+            return jsonify({
+                "error": "Failed to update report status",
+                "details": str(e)
+            }), 500

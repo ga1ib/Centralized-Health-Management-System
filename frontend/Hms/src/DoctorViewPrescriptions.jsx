@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { FaSpinner, FaNotesMedical, FaUserMd, FaFileMedical } from "react-icons/fa";
 import { useLocation } from "react-router-dom";
 import axios from "axios";
 import Header from "./header";
@@ -43,70 +45,138 @@ const DoctorViewPrescriptions = () => {
   return (
     <div className="flex flex-col min-h-screen bg-[url('../image/bg-01.jpg')] bg-fixed bg-cover bg-center">
       <Header />
-      <main className="flex-grow container mx-auto py-10 px-6">
-        <h2 className="text-2xl font-bold mb-6 text-white text-center">
-          Prescriptions for {patientName || patientEmail}
-        </h2>
+      <main className="flex-grow container mx-auto py-16 px-6">
+        <motion.h2
+          className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-blue-500 text-center mb-12"
+          initial={{ opacity: 0, y: -30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+        >
+          Patient Prescriptions
+        </motion.h2>
+
+        <motion.div
+          className="bg-white/90 backdrop-blur-lg p-6 rounded-2xl shadow-2xl mb-6 text-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="flex items-center justify-center">
+            <FaUserMd className="text-blue-500 text-2xl mr-3" />
+            <h3 className="text-xl font-semibold text-gray-800">
+              {patientName || patientEmail}
+            </h3>
+          </div>
+        </motion.div>
+
         {loading ? (
-          <div className="text-white">Loading...</div>
+          <div className="flex justify-center py-20">
+            <FaSpinner className="animate-spin text-white text-5xl" />
+          </div>
         ) : error ? (
-          <div className="text-red-600">{error}</div>
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6">
+            {error}
+          </div>
         ) : prescriptions.length === 0 ? (
-          <div className="text-white">No prescriptions found.</div>
+          <div className="bg-white/90 backdrop-blur-lg p-8 rounded-2xl shadow-2xl text-center">
+            <FaNotesMedical className="mx-auto text-4xl text-gray-400 mb-4" />
+            <p className="text-gray-600">No prescriptions found for this patient.</p>
+          </div>
         ) : (
-          <table className="min-w-full bg-white rounded shadow">
-            <thead>
-              <tr>
-                <th className="py-2 px-4 border-b">Date</th>
-                <th className="py-2 px-4 border-b">Details</th>
-              </tr>
-            </thead>
-            <tbody>
-              {prescriptions.map((presc, index) => (
-                <tr key={presc._id || presc.id || index}>
-                  <td className="py-2 px-4 border-b">{presc.date ? new Date(presc.date).toLocaleString() : (presc.createdAt ? new Date(presc.createdAt).toLocaleString() : "-")}</td>
-                  <td className="py-2 px-4 border-b">
-                    <ul className="list-disc pl-4 text-left">
-                      {presc.patient_name && <li><b>Patient Name:</b> {presc.patient_name}</li>}
-                      {presc.patient_email && <li><b>Patient Email:</b> {presc.patient_email}</li>}
-                      {presc.doctor_email && <li><b>Doctor Email:</b> {presc.doctor_email}</li>}
-                      {presc.bloodPressure && <li><b>Blood Pressure:</b> {presc.bloodPressure}</li>}
-                      {presc.heartRate && <li><b>Heart Rate:</b> {presc.heartRate}</li>}
-                      {presc.temperature && <li><b>Temperature:</b> {presc.temperature}</li>}
-                      {presc.symptoms && <li><b>Symptoms:</b> {presc.symptoms}</li>}
-                      {presc.disease && <li><b>Disease Name:</b> {presc.disease}</li>}
+          <div className="space-y-6">
+            {prescriptions.map((presc, index) => (
+              <motion.div
+                key={presc._id || index}
+                className="bg-white/90 backdrop-blur-lg p-6 rounded-2xl shadow-2xl"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+              >
+                <div className="flex items-center mb-4">
+                  <FaFileMedical className="text-blue-500 text-xl mr-2" />
+                  <h4 className="text-lg font-semibold text-gray-800">
+                    {presc.date ? new Date(presc.date).toLocaleDateString() : 
+                     presc.createdAt ? new Date(presc.createdAt).toLocaleDateString() : "-"}
+                  </h4>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <h5 className="font-semibold text-gray-700 mb-2">Patient Information</h5>
+                    <ul className="space-y-2">
+                      {presc.bloodPressure && (
+                        <li className="text-gray-600">
+                          <span className="font-medium">Blood Pressure:</span> {presc.bloodPressure}
+                        </li>
+                      )}
+                      {presc.heartRate && (
+                        <li className="text-gray-600">
+                          <span className="font-medium">Heart Rate:</span> {presc.heartRate}
+                        </li>
+                      )}
+                      {presc.temperature && (
+                        <li className="text-gray-600">
+                          <span className="font-medium">Temperature:</span> {presc.temperature}
+                        </li>
+                      )}
+                      {presc.symptoms && (
+                        <li className="text-gray-600">
+                          <span className="font-medium">Symptoms:</span> {presc.symptoms}
+                        </li>
+                      )}
+                      {presc.disease && (
+                        <li className="text-gray-600">
+                          <span className="font-medium">Disease:</span> {presc.disease}
+                        </li>
+                      )}
+                    </ul>
+                  </div>
+
+                  <div>
+                    <div className="space-y-4">
                       {Array.isArray(presc.medicines) && presc.medicines.length > 0 && (
-                        <li>
-                          <b>Medicine:</b>
-                          <ul className="list-disc pl-4">
+                        <div>
+                          <h5 className="font-semibold text-gray-700 mb-2">Prescribed Medicines</h5>
+                          <ul className="list-disc pl-5 space-y-1">
                             {presc.medicines.map((med, i) => (
-                              <li key={i}>
+                              <li key={i} className="text-gray-600">
                                 {med.medicine} {med.timetable && `- ${med.timetable}`}
                               </li>
                             ))}
                           </ul>
-                        </li>
+                        </div>
                       )}
+
                       {Array.isArray(presc.tests) && presc.tests.length > 0 && (
-                        <li>
-                          <b>Tests:</b>
-                          <ul className="list-disc pl-4">
+                        <div>
+                          <h5 className="font-semibold text-gray-700 mb-2">Recommended Tests</h5>
+                          <ul className="list-disc pl-5 space-y-1">
                             {presc.tests.map((test, i) => (
-                              <li key={i}>
+                              <li key={i} className="text-gray-600">
                                 {test.testName} {test.price ? `- ${test.price} BDT` : ""}
                               </li>
                             ))}
                           </ul>
-                        </li>
+                          {presc.tests_total && (
+                            <p className="mt-2 text-gray-800 font-semibold">
+                              Total Test Cost: {presc.tests_total} BDT
+                            </p>
+                          )}
+                        </div>
                       )}
-                      {presc.tests_total && <li><b>Total Test Amount:</b> {presc.tests_total} BDT</li>}
-                      {presc.notes && <li><b>Notes:</b> {presc.notes}</li>}
-                    </ul>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+
+                      {presc.notes && (
+                        <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                          <h5 className="font-semibold text-gray-700 mb-2">Additional Notes</h5>
+                          <p className="text-gray-600">{presc.notes}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
         )}
       </main>
       <Footer />

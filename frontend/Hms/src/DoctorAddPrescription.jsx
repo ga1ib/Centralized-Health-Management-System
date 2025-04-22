@@ -1,32 +1,31 @@
 import React, { useState } from 'react';
 import { motion } from "framer-motion";
-import { FaSpinner, FaFileMedical, FaPlusCircle, FaTrash } from "react-icons/fa";
+import { FaSpinner, FaPlusCircle, FaFileMedical, FaTrash } from "react-icons/fa";
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Header from './header';
 import Footer from './footer';
 
-const AddPrescription = () => {
+const DoctorAddPrescription = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const query = new URLSearchParams(location.search);
-    const patientEmail = query.get('patient_email') || '';
-    const patientName = query.get('patient_name') || '';
+    const patientEmail = query.get('patient_email');
+    const patientName = query.get('patient_name');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
 
     const [prescription, setPrescription] = useState({
         patient_email: patientEmail,
         patient_name: patientName,
         doctor_email: localStorage.getItem('email'),
-        blood_pressure: '',
-        heart_rate: '',
-        temperature: '',
         symptoms: '',
         disease: '',
         medicines: [{ medicine: '', timetable: '' }],
         tests: [{ testName: '', price: '' }],
+        blood_pressure: '',
+        heart_rate: '',
+        temperature: '',
         notes: ''
     });
 
@@ -81,19 +80,16 @@ const AddPrescription = () => {
         e.preventDefault();
         setLoading(true);
         setError('');
-        setSuccess('');
 
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.post('http://localhost:5000/api/prescriptions/', 
+            await axios.post('http://localhost:5000/api/prescriptions/', 
                 { ...prescription, tests_total: calculateTotalTestCost() },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
-            setSuccess('Prescription created successfully!');
-            setTimeout(() => navigate('/doctor-appointment-dashboard'), 2000);
+            navigate('/doctor-appointment-dashboard');
         } catch (err) {
             setError(err.response?.data?.error || 'Failed to create prescription');
-        } finally {
             setLoading(false);
         }
     };
@@ -108,7 +104,7 @@ const AddPrescription = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8 }}
                 >
-                    Create Prescription
+                    Add Prescription
                 </motion.h2>
 
                 <motion.div
@@ -123,17 +119,12 @@ const AddPrescription = () => {
                                 {error}
                             </div>
                         )}
-                        {success && (
-                            <div className="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative">
-                                {success}
-                            </div>
-                        )}
 
                         <div className="grid md:grid-cols-2 gap-6 mb-6">
                             <div>
                                 <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                                     <FaFileMedical className="mr-2 text-blue-500" />
-                                    Patient Information
+                                    Patient Details
                                 </h3>
                                 <div className="space-y-4">
                                     <div>
@@ -176,7 +167,7 @@ const AddPrescription = () => {
                                             value={prescription.symptoms}
                                             onChange={handleInputChange}
                                             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                            rows="2"
+                                            rows="3"
                                             placeholder="Patient symptoms"
                                         />
                                     </div>
@@ -199,7 +190,7 @@ const AddPrescription = () => {
                                     <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center justify-between">
                                         <span className="flex items-center">
                                             <FaFileMedical className="mr-2 text-green-500" />
-                                            Medicines
+                                            Prescribed Medicines
                                         </span>
                                         <button
                                             type="button"
@@ -244,7 +235,7 @@ const AddPrescription = () => {
                                     <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center justify-between">
                                         <span className="flex items-center">
                                             <FaFileMedical className="mr-2 text-yellow-500" />
-                                            Tests
+                                            Recommended Tests
                                         </span>
                                         <button
                                             type="button"
@@ -330,4 +321,4 @@ const AddPrescription = () => {
     );
 };
 
-export default AddPrescription;
+export default DoctorAddPrescription;
