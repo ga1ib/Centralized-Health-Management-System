@@ -14,13 +14,34 @@ const PatientPaymentHistory = () => {
         const fetchPayments = async () => {
             try {
                 const token = localStorage.getItem('token');
+                if (!token) {
+                    throw new Error('Authentication token not found');
+                }
                 const userEmail = localStorage.getItem('email');
-                const response = await axios.get(`http://localhost:5000/api/payments/history/${userEmail}`, {
-                    headers: { Authorization: `Bearer ${token}` }
+                if (!userEmail) {
+                    throw new Error('User email not found');
+                }
+
+                const response = await axios.get(`http://localhost:5000/api/billing/${userEmail}`, {
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
                 });
-                setPayments(response.data.payments || []);
+
+                if (!response.data || !Array.isArray(response.data.payments)) {
+                    throw new Error('Invalid response format from server');
+                }
+
+                setPayments(response.data.payments);
+                setError('');
             } catch (err) {
-                setError(err.response?.data?.error || 'Failed to fetch payment history');
+                console.error('Payment history error:', err);
+                setError(
+                    err.response?.data?.error || 
+                    err.message || 
+                    'Failed to fetch payment history'
+                );
             } finally {
                 setLoading(false);
             }

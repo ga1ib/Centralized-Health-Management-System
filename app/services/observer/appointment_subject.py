@@ -11,3 +11,7 @@ class AppointmentSubject(Subject):
         
     def get_status(self):
         return self._status
+
+    def notify_creation(self, appointment_data):
+        # Notify observers about new appointment creation
+        self.notify("creation", None, appointment_data)

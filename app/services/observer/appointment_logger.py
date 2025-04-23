@@ -2,6 +2,11 @@ from .observer import Observer
 from datetime import datetime
 
 class AppointmentLogger(Observer):
-    def update(self, appointment_id, old_status, new_status):
+    def update(self, event_type, old_value, new_value):
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        print(f"[{timestamp}] Appointment {appointment_id} status changed from {old_status} to {new_status}")
+        
+        if event_type == "creation":
+            print(f"[{timestamp}] New appointment created: {new_value}")
+        else:
+            # Handle status change events
+            print(f"[{timestamp}] Appointment {event_type} status changed from {old_value} to {new_value}")

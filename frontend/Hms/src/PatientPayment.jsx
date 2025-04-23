@@ -34,43 +34,90 @@ const PatientPayment = () => {
         try {
             const storedAppointmentData = localStorage.getItem('appointmentData');
             if (!storedAppointmentData) {
-                navigate('/book-patient-appointment');
-                return;
+                throw new Error('Appointment data not found');
             }
 
             const parsedAppointmentData = JSON.parse(storedAppointmentData);
             const token = localStorage.getItem("token");
+            if (!token) {
+                throw new Error('Authentication token not found');
+            }
+
+            // Format date and time
+            const dateObj = new Date(parsedAppointmentData.appointment_date);
+            const formattedDate = dateObj.toISOString().split('T')[0];
+
+            // Create billing data
+            const billingData = {
+                patient_email: parsedAppointmentData.patient_email,
+                patient_name: parsedAppointmentData.patient_name,
+                doctor_email: parsedAppointmentData.doctor_email,
+                doctor_name: parsedAppointmentData.doctor_name,
+                amount: paymentDetails.amount,
+                card_number: paymentDetails.cardNumber,
+                card_holder: paymentDetails.cardHolder,
+                expiry_date: paymentDetails.expiryDate,
+                schedule_date: formattedDate,
+                schedule_time: parsedAppointmentData.appointment_time
+            };
 
             // Process payment
-            const paymentResponse = await axios.post('http://localhost:5000/api/payments/process', {
-                ...paymentDetails,
-                patient_email: parsedAppointmentData.patient_email,
-                doctor_email: parsedAppointmentData.doctor_email,
-                doctor_name: parsedAppointmentData.doctor_name
-            }, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const paymentResponse = await axios.post(
+                'http://localhost:5000/api/billing/',
+                billingData,
+                { 
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    } 
+                }
+            );
 
-            // Create appointment
+            if (!paymentResponse.data?.transaction_id) {
+                throw new Error('Payment failed - no transaction ID received');
+            }
+
+            // Create appointment data
             const appointmentData = {
                 patient_email: parsedAppointmentData.patient_email,
                 patient_name: parsedAppointmentData.patient_name,
                 doctor_email: parsedAppointmentData.doctor_email,
                 doctor_name: parsedAppointmentData.doctor_name,
-                date: parsedAppointmentData.appointment_date,
+                date: formattedDate,
                 time: parsedAppointmentData.appointment_time,
                 status: "Scheduled",
                 payment_id: paymentResponse.data.transaction_id
             };
 
-            await axios.post('http://localhost:5000/api/appointments/', appointmentData, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            // Create appointment
+            const appointmentResponse = await axios.post(
+                'http://localhost:5000/api/appointments/',
+                appointmentData,
+                { 
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    } 
+                }
+            );
 
+            // Clear the stored appointment data
             localStorage.removeItem('appointmentData');
-            navigate('/patient-payment-history');
+
+            // Check if the appointment was created successfully
+            if (appointmentResponse.status === 201 && appointmentResponse.data?.appointment) {
+                // Navigate to the appointments view page
+                navigate('/patient-view-appointment', { replace: true });
+                return;
+            }
+
+            throw new Error('Failed to create appointment - invalid response');
         } catch (err) {
-            setError(err.response?.data?.error || 'Payment and appointment booking failed. Please try again.');
+            console.error('Payment/Appointment Error:', err);
+            // Only set error if we haven't navigated away
+            if (window.location.pathname === '/patient-payment-processing') {
+                setError(err.response?.data?.error || err.message || 'Payment processing failed. Please try again.');
+            }
         } finally {
             setLoading(false);
         }

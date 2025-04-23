@@ -6,12 +6,14 @@ from app.services.observer.appointment_subject import AppointmentSubject
 from app.services.observer.appointment_logger import AppointmentLogger
 from app.services.appointment_factory import AppointmentFactory
 from bson import ObjectId
+from datetime import datetime
 
 appointment_bp = Blueprint("appointment", __name__)
 
-# Get database instance and use the "Appointments" collection
+# Get database instance and use the "Appointments" and "Billing" collections
 db_instance = DatabaseConnection().get_database()
 appointments_collection = db_instance["Appointments"]
+billing_collection = db_instance["Billing"]
 
 # Initialize the observer pattern and factory
 appointment_subject = AppointmentSubject()
@@ -40,30 +42,93 @@ def get_all_appointments(decoded_token):
 @appointment_bp.route("/", methods=["POST"])
 @token_required
 def create_appointment(decoded_token):
-    data = request.json
-    required_fields = ["patient_email", "patient_name", "doctor_email", "doctor_name", "date", "time", "status"]
-    if not all(field in data for field in required_fields):
-        return jsonify({"error": "Missing required appointment fields"}), 400
-
     try:
-        # Use factory to create appointment
-        appointment = appointment_factory.create_appointment(data)
+        data = request.json
+        print(f"Received appointment data: {data}")
         
-        # Convert appointment to dictionary and add additional fields
+        required_fields = [
+            "patient_email", "patient_name", "doctor_email", 
+            "doctor_name", "date", "time", "status", "payment_id"
+        ]
+        
+        # Validate required fields
+        missing_fields = [field for field in required_fields if not data.get(field)]
+        if missing_fields:
+            return jsonify({
+                "error": f"Missing required appointment fields: {', '.join(missing_fields)}",
+                "success": False
+            }), 400
+
+        # Verify payment exists
+        payment = billing_collection.find_one({"transaction_id": data["payment_id"]})
+        if not payment:
+            return jsonify({
+                "error": "Invalid payment reference",
+                "success": False
+            }), 400
+            
+        if payment["patient_email"] != data["patient_email"]:
+            return jsonify({
+                "error": "Payment reference does not match patient",
+                "success": False
+            }), 400
+
+        # Check for duplicate appointments
+        existing_appointment = appointments_collection.find_one({
+            "doctor_email": data["doctor_email"],
+            "date": data["date"],
+            "time": data["time"],
+            "status": {"$ne": "Cancelled"}
+        })
+        
+        if existing_appointment:
+            return jsonify({
+                "error": "This time slot is already booked",
+                "success": False
+            }), 400
+        
+        # Create appointment using factory
+        appointment = appointment_factory.create_appointment(data)
         appointment_data = appointment.to_dict()
         appointment_data.update({
             "patient_name": data["patient_name"],
-            "doctor_name": data["doctor_name"]
+            "doctor_name": data["doctor_name"],
+            "payment_id": data["payment_id"],
+            "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         })
         
         # Insert into database
         result = appointments_collection.insert_one(appointment_data)
+        
+        # Get the created appointment
         new_appt = appointments_collection.find_one({"_id": result.inserted_id})
+        if not new_appt:
+            return jsonify({
+                "error": "Failed to retrieve created appointment",
+                "success": False
+            }), 500
+            
+        # Convert ObjectId to string for JSON serialization
         new_appt["_id"] = str(new_appt["_id"])
         
-        return jsonify({"message": "Appointment created successfully", "appointment": new_appt}), 201
+        # Notify observers
+        appointment_subject.notify_creation(new_appt)
+        
+        print(f"Successfully created appointment: {new_appt}")
+        
+        return jsonify({
+            "message": "Appointment created successfully",
+            "appointment": new_appt,
+            "success": True
+        }), 201
+
     except Exception as e:
-        return jsonify({"error": "Failed to create appointment", "details": str(e)}), 500
+        print(f"Error creating appointment: {str(e)}")
+        return jsonify({
+            "error": f"Failed to create appointment: {str(e)}",
+            "success": False
+        }), 500
 
 
 # PUT: Update appointment status
